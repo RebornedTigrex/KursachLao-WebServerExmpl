@@ -1,6 +1,12 @@
 #include "RequestHandler.h"
 #include <iostream>
 
+std::unique_ptr<RequestHandler> RequestHandler::instance_ = nullptr;
+
+RequestHandler* RequestHandler::getInstance() {
+    return instance_.get();
+}
+
 RequestHandler::RequestHandler()
     : BaseModule("HTTP Request Handler") {
 }
@@ -24,14 +30,15 @@ void RequestHandler::addRouteHandler(const std::string& path,
 void RequestHandler::setupDefaultRoutes() {
     // Обработчик для корневого пути
     addRouteHandler("/", [](const http::request<http::string_body>& req, http::response<http::string_body>& res) {
+        res.result(http::status::ok);
         res.set(http::field::content_type, "text/plain");
         res.body() = "Hello from RequestHandler module!";
         });
 
     // Обработчик для /status
     addRouteHandler("/status", [](const http::request<http::string_body>& req, http::response<http::string_body>& res) {
+        res.result(http::status::ok);
         res.set(http::field::content_type, "application/json");
         res.body() = R"({"status": "ok", "service": "modular_http_server"})";
         });
 }
-

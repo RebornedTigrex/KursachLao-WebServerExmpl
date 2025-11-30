@@ -1,7 +1,6 @@
 #include "SessionHandler.h"
-
+#include "RequestHandler.h"
 #include <iostream>
-#include <thread>
 
 // Реализация метода отправки сообщений
 template<class Stream>
@@ -14,24 +13,30 @@ void SessionHandler::send_lambda<Stream>::operator()(
     http::write(stream_, sr, ec_);
 }
 
-// Реализация обработчика запроса
+// Реализация обработчика запроса - делегируем RequestHandler
 template<class Body, class Allocator, class Send>
 void SessionHandler::handle_request(
     http::request<Body, http::basic_fields<Allocator>>&& req,
     Send&& send)
 {
-    // Создаем ответ с текстом "Hello World!"
-    http::response<http::string_body> res{ http::status::ok, req.version() };
-    res.set(http::field::server, BOOST_BEAST_VERSION_STRING);
-    res.set(http::field::content_type, "text/plain");
-    res.keep_alive(req.keep_alive());
-    res.body() = "Hello World!";
-    res.prepare_payload();
-
-    return send(std::move(res));
+    // Получаем экземпляр RequestHandler и делегируем обработку
+    auto* request_handler = RequestHandler::getInstance();
+    if (request_handler) {
+        request_handler->handleRequest(std::move(req), std::forward<Send>(send));
+    }
+    else {
+        // Fallback: если RequestHandler не доступен
+        http::response<http::string_body> res{ http::status::internal_server_error, req.version() };
+        res.set(http::field::server, BOOST_BEAST_VERSION_STRING);
+        res.set(http::field::content_type, "text/plain");
+        res.keep_alive(req.keep_alive());
+        res.body() = "RequestHandler not available";
+        res.prepare_payload();
+        return send(std::move(res));
+    }
 }
 
-// Явные инстанциации шаблонных методов
+// Явные инстанциования шаблонных методов
 template void SessionHandler::handle_request<
     http::string_body,
     std::allocator<char>,
@@ -41,28 +46,67 @@ template void SessionHandler::handle_request<
 
 template class SessionHandler::send_lambda<tcp::socket>;
 
-// Реализация обработки сессии
+// Асинхронная реализация обработки сессии
 void SessionHandler::do_session(tcp::socket socket)
 {
+    auto self = std::make_shared<session_data>(std::move(socket));
+
+    // Запускаем асинхронное чтение
+    self->read_request();
+}
+
+// Вспомогательная структура для хранения состояния сессии
+struct session_data {
+    tcp::socket socket;
+    beast::flat_buffer buffer{ 8192 };
+    http::request<http::string_body> req;
+    std::shared_ptr<void> res;
     bool close = false;
     beast::error_code ec;
-    beast::flat_buffer buffer;
 
-    send_lambda<tcp::socket> lambda{ socket, close, ec };
-
-    for (;;)
-    {
-        // Читаем запрос
-        http::request<http::string_body> req;
-        http::read(socket, buffer, req, ec);
-        if (ec == http::error::end_of_stream) break;
-        if (ec) return;
-
-        // Отправляем ответ "Hello World!"
-        handle_request(std::move(req), lambda);
-        if (ec) return;
-        if (close) break;
+    explicit session_data(tcp::socket&& socket)
+        : socket(std::move(socket)) {
     }
 
-    socket.shutdown(tcp::socket::shutdown_send, ec);
-}
+    void read_request() {
+        // Очищаем запрос для повторного использования
+        req = {};
+
+        // Асинхронное чтение запроса
+        http::async_read(socket, buffer, req,
+            [self = shared_from_this()](beast::error_code ec, std::size_t bytes_transferred) {
+                self->on_read(ec, bytes_transferred);
+            });
+    }
+
+    void on_read(beast::error_code ec, std::size_t bytes_transferred) {
+        if (ec == http::error::end_of_stream) {
+            // Клиент закрыл соединение
+            return do_close();
+        }
+
+        if (ec) {
+            // Ошибка чтения
+            return;
+        }
+
+        // Обрабатываем запрос
+        handle_request(std::move(req),
+            SessionHandler::send_lambda<tcp::socket>{socket, close, ec});
+
+        if (ec) {
+            return;
+        }
+        if (close) {
+            return do_close();
+        }
+
+        // Читаем следующий запрос
+        read_request();
+    }
+
+    void do_close() {
+        beast::error_code ec;
+        socket.shutdown(tcp::socket::shutdown_send, ec);
+    }
+};

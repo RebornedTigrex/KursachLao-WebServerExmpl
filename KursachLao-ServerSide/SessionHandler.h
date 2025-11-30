@@ -13,7 +13,7 @@ using tcp = boost::asio::ip::tcp;
 
 class SessionHandler {
 public:
-    // Обработка HTTP сессии
+    // Асинхронная обработка HTTP сессии
     static void do_session(tcp::socket socket);
 
 private:
@@ -32,8 +32,7 @@ private:
         void operator()(http::message<isRequest, Body, Fields>&& msg) const;
     };
 
-    // Обработчик HTTP запроса - всегда возвращает "Hello World!"
+    // Обработчик HTTP запроса - делегирует обработку RequestHandler
     template<class Body, class Allocator, class Send>
     static void handle_request(http::request<Body, http::basic_fields<Allocator>>&& req, Send&& send);
 };
-
