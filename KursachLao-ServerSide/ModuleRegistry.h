@@ -1,11 +1,15 @@
 #pragma once
 
+#include "BaseModule.h"
 #include "IModule.h"
+
 #include <unordered_map>
 #include <memory>
 #include <vector>
 #include <iostream>
 #include <mutex>
+#include <stdexcept>
+
 
 /*
 # ModuleManager
@@ -24,6 +28,12 @@ private:
         return nextId_++;
     }
 
+    void setModuleId(BaseModule* module, int id) {
+        if (module) {
+            module->setId(id);
+        }
+    }
+
 public:
     template<typename T, typename... Args>
     T* registerModule(Args&&... args) {
@@ -31,7 +41,7 @@ public:
         int id = generateId();
 
         // Устанавливаем id в модуль
-        module->setId(id);
+        setModuleId(module.get(), id);
 
         // Проверяем, не существует ли уже модуль с таким id
         if (modules_.find(id) != modules_.end()) {

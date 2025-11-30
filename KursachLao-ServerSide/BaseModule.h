@@ -1,9 +1,10 @@
 #pragma once
 #include "IModule.h"
 #include <atomic>
+#include <string>
 
 class BaseModule : public IModule {
-    const enum ModuleStatus : uint8_t { SUCCESS, DISABLED, ERROR };
+    const enum class ModuleStatus : uint8_t { SUCCESS, DISABLED, MODULE_ERROR };
 
 protected:
     std::string name_;
@@ -13,7 +14,7 @@ protected:
     int id_;
 
 public:
-    BaseModule(const std::string& name, const int& id = -1/*, const std::string& version = "dev"*/)
+    BaseModule(const std::string& name = "Dev-Name", const int& id = -1/*, const std::string& version = "dev"*/)
         : id_(id),
         name_(name),
         /*version_(version),*/ 
@@ -47,6 +48,8 @@ public:
         }
     }
 
+    friend class ModuleRegistry;
+
 protected:
     // Для реализации в наследниках
     virtual bool onInitialize() = 0;
@@ -55,9 +58,5 @@ protected:
     // Вспомогательные методы
     bool isInitialized() const { return initialized_.load(); }
 
-    // Метод для установки id (используется реестром)
-    friend class ModuleRegistry;
-
     void setId(int id) { id_ = id; }
-
 };
