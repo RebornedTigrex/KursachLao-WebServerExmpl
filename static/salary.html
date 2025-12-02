@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HR Harmony Hub | Salary</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+    <script src="https://unpkg.com/feather-icons"></script>
+</head>
+<body class="bg-gray-50">
+    <custom-navbar></custom-navbar>
+    
+    <main class="container mx-auto px-4 py-8">
+<h1 class="text-2xl font-bold text-gray-800 mb-8">Salary Management</h1>
+        
+        <div class="bg-white rounded-xl shadow-md p-6">
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Employee</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Base Salary</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Bonuses</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Deductions</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Net Salary</th>
+                        </tr>
+                    </thead>
+                    <tbody id="salary-table-body" class="bg-white divide-y divide-gray-200">
+                        <!-- Will be populated by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+    
+    <custom-footer></custom-footer>
+    <script src="components/navbar.js"></script>
+<script src="components/footer.js"></script>
+    <script src="script.js"></script>
+    <script src="modules/dataCache.js"></script>
+    <script>
+        feather.replace();
+        
+        document.addEventListener('DOMContentLoaded', async () => {
+            const employees = await window.dataCache.getEmployees();
+            const tbody = document.getElementById('salary-table-body');
+            tbody.innerHTML = '';
+            
+            employees
+                .filter(emp => emp.status === 'hired')
+                .forEach(emp => {
+                    const row = document.createElement('tr');
+                    row.className = 'hover:bg-gray-50';
+                    
+                    const bonuses = emp.bonuses * 500; // $500 per bonus
+                    const deductions = emp.penalties * 200; // $200 per penalty
+                    const netSalary = emp.salary + bonuses - deductions;
+                    
+                    row.innerHTML = `
+                        <td class="px-6 py-4 whitespace-nowrap font-medium text-gray-900">${emp.fullname}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">$${emp.salary.toLocaleString()}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-green-600">+$${bonuses.toLocaleString()}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-red-600">-$${deductions.toLocaleString()}</td>
+                        <td class="px-6 py-4 whitespace-nowrap font-semibold">$${netSalary.toLocaleString()}</td>
+                    `;
+                    tbody.appendChild(row);
+                });
+        });
+    </script>
+</body>
+</html>
