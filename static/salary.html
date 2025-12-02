@@ -118,8 +118,8 @@
                         const row = document.createElement('tr');
                         row.className = 'hover:bg-gray-50';
 
-                        const bonuses = (emp.bonuses || 0) * 500; // $500 per bonus
-                        const deductions = (emp.penalties || 0) * 200; // $200 per penalty
+                        const bonuses = emp.totalBonuses || 0;
+                        const deductions = emp.totalPenalties || 0;
                         const netSalary = emp.salary + bonuses - deductions;
 
                         row.innerHTML = `

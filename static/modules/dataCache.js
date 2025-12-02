@@ -217,9 +217,12 @@ class DataCache {
         const penalty = { id: Date.now(), employeeId, ...penaltyData, date: new Date().toISOString() };
         this.cache.penalties.push(penalty);
 
-        // update counter
+        // update total deductions amount
         const employee = this.cache.employees?.find(e => e.id === employeeId);
-        if (employee) employee.penalties = (employee.penalties || 0) + 1;
+        if (employee) {
+            if (!employee.totalPenalties) employee.totalPenalties = 0;
+            employee.totalPenalties += penaltyData.amount || 0;
+        }
 
         this._markUpdated();
         await this._syncToServer('POST', `/employees/${employeeId}/penalties`, penalty);
@@ -230,8 +233,12 @@ class DataCache {
         const bonus = { id: Date.now(), employeeId, ...bonusData, date: new Date().toISOString() };
         this.cache.bonuses.push(bonus);
 
+        // update total bonuses amount
         const employee = this.cache.employees?.find(e => e.id === employeeId);
-        if (employee) employee.bonuses = (employee.bonuses || 0) + 1;
+        if (employee) {
+            if (!employee.totalBonuses) employee.totalBonuses = 0;
+            employee.totalBonuses += bonusData.amount || 0;
+        }
 
         this._markUpdated();
         await this._syncToServer('POST', `/employees/${employeeId}/bonuses`, bonus);
