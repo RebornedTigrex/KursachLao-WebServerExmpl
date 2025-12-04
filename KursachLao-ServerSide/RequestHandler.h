@@ -1,55 +1,69 @@
 #pragma once
 #include "BaseModule.h"
+#include "FileCache.h"  // NEW: Для доступа к кэшу
+
 #include <boost/beast/http.hpp>
 #include <sstream>
 #include <fstream>
 #include <vector>
+#include <unordered_map>  // UPDATED: Для routeHandlers_
 
 namespace beast = boost::beast;
 namespace http = beast::http;
 
 class RequestHandler : public BaseModule {
-
     std::string attention_path;
     std::string attention_html;
-    
+
     std::string errorNotFound_path;
     std::string errorNotFound_html;
+    FileCache* file_cache_ = nullptr;  // NEW: Указатель на кэш (инжектируется в main)
 
-    void setupFiles() {
-        
-
+    void setupBasicHtmlPages() {
         std::stringstream buffer, buffer2;
         std::ifstream file(attention_path);
         buffer << file.rdbuf();
         attention_html = buffer.str();
-
         std::ifstream file2(errorNotFound_path);
         buffer2 << file2.rdbuf();
         errorNotFound_html = buffer2.str();
-
     }
 
 public:
     RequestHandler();
+    // NEW: Метод для инжекции кэша (только из main)
+    void setFileCache(FileCache* cache) { file_cache_ = cache; }
 
     // Методы для регистрации обработчиков конкретных путей
     void addRouteHandler(const std::string& path, std::function<void(const http::request<http::string_body>&, http::response<http::string_body>&)> handler);
 
     template<class Body, class Allocator, class Send>
     void handleRequest(http::request<Body, http::basic_fields<Allocator>>&& req, Send&& send) {
-
         http::response<http::string_body> res{ http::status::not_found, req.version() };
         res.set(http::field::server, "ModularServer");
         res.keep_alive(req.keep_alive());
-
         std::string target = std::string(req.target());
-        auto it = routeHandlers_.find(target);
 
+        // UPDATED: Проверяем wildcard /* для динамического поиска в кэше
+        auto wildcard_it = routeHandlers_.find("/*");
+        if (wildcard_it != routeHandlers_.end() && file_cache_ && target != "/") {  // NEW: Если /* зарегистрирован и кэш есть
+            auto cached_file = file_cache_->get_file(target);  // Динамический поиск по route
+            if (cached_file) {
+                res.set(http::field::content_type, cached_file->mime_type.c_str());
+                res.body() = std::move(cached_file->content);
+                res.result(http::status::ok);
+                res.prepare_payload();
+                send(std::move(res));
+                return;
+            }
+        }
+
+        // Обычная логика для точных маршрутов
+        auto it = routeHandlers_.find(target);
         if (it != routeHandlers_.end()) {
             it->second(req, res);
         }
-        else if(target.find("../") != std::string::npos) {
+        else if (target.find("../") != std::string::npos) {
             res.set(http::field::content_type, "text/html");
             res.body() = attention_html;
         }
@@ -57,7 +71,6 @@ public:
             res.set(http::field::content_type, "text/html");
             res.body() = errorNotFound_html;
         }
-
         res.prepare_payload();
         send(std::move(res));
     }
@@ -71,6 +84,5 @@ private:
         std::string,
         std::function<void(const http::request<http::string_body>&, http::response<http::string_body>&)>
     > routeHandlers_;
-
     void setupDefaultRoutes();
 };

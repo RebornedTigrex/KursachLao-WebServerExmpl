@@ -8,9 +8,12 @@ RequestHandler::RequestHandler()
 }
 
 bool RequestHandler::onInitialize() {
-    setupFiles();
+    setupBasicHtmlPages();
     setupDefaultRoutes();
     std::cout << "RequestHandler initialized with " << routeHandlers_.size() << " routes" << std::endl;
+    if (file_cache_) {
+        std::cout << "FileCache linked successfully." << std::endl;  // NEW: Лог для отладки
+    }
     return true;
 }
 
@@ -30,11 +33,9 @@ void RequestHandler::setupDefaultRoutes() {
         res.set(http::field::content_type, "text/plain");
         res.body() = "Hello from RequestHandler module!";
         });
-
     // Обработчик для /status
     addRouteHandler("/status", [](const http::request<http::string_body>& req, http::response<http::string_body>& res) {
         res.set(http::field::content_type, "application/json");
         res.body() = R"({"status": "ok", "service": "modular_http_server"})";
         });
 }
-

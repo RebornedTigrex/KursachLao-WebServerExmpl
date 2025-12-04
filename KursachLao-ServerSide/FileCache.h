@@ -1,5 +1,5 @@
 #pragma once
-
+#include "BaseModule.h"  // Наследование от BaseModule
 #include <filesystem>
 #include <string>
 #include <unordered_map>
@@ -12,7 +12,7 @@
 
 namespace fs = std::filesystem;
 
-class FileCache { //TODO: Добавить наследование от BaseModule, интегрировать в архитектуру регистрации модулей.
+class FileCache : public BaseModule {  // UPDATED: Наследник BaseModule
 private:
     struct CachedFile {
         std::string content;
@@ -31,7 +31,7 @@ private:
     size_t max_cache_size_;
     size_t total_cache_size_;
 
-    // Вспомогательные методы
+    // Вспомогательные методы (без изменений)
     std::string get_mime_type(const std::string& extension) const;
     std::string normalize_route(const fs::path& file_path) const;
     std::optional<CachedFile> load_file_from_disk(const fs::path& file_path) const;
@@ -39,19 +39,21 @@ private:
     void scan_directory(const fs::path& directory);
 
 public:
-    // Конструктор/деструктор
+    // FIXED: Вернул оригинальный конструктор с args (rebuild_file_map() внутри)
     FileCache(const std::string& base_dir, bool enable_cache = true, size_t max_cache = 100);
     ~FileCache() = default;
 
-    // Запрещаем копирование
+    // Запрещаем копирование/перемещение
     FileCache(const FileCache&) = delete;
     FileCache& operator=(const FileCache&) = delete;
+    FileCache(FileCache&&) = delete;
+    FileCache& operator=(FileCache&&) = delete;
 
-    // Разрешаем перемещение
-    FileCache(FileCache&&) = default;
-    FileCache& operator=(FileCache&&) = default;
+    // UPDATED: Модульные методы (onInitialize логирует, без дублирования)
+    bool onInitialize() override;
+    void onShutdown() override;
 
-    // Основной API
+    // Основной API (без изменений)
     void rebuild_file_map();
     std::optional<CachedFile> get_file(const std::string& route);
     std::optional<CachedFile> get_file_by_path(const std::string& file_path);
@@ -59,14 +61,14 @@ public:
     bool evict_from_cache(const std::string& route);
     void clear_cache();
 
-    // Информационные методы
+    // Информационные методы (без изменений)
     std::vector<std::string> get_all_routes() const;
     std::vector<std::string> find_routes(const std::string& pattern) const;
     bool route_exists(const std::string& route) const;
     std::optional<std::string> get_mime_type_for_route(const std::string& route) const;
     bool refresh_file(const std::string& route);
 
-    // Структуры для статистики
+    // Структуры для статистики (без изменений)
     struct CacheInfo {
         size_t cached_files_count;
         size_t total_routes_count;
@@ -74,7 +76,6 @@ public:
         size_t max_cache_size;
         bool cache_enabled;
     };
-
     struct CacheStats {
         struct FileStat {
             std::string route;
@@ -82,17 +83,16 @@ public:
             std::chrono::system_clock::time_point last_accessed;
             std::chrono::system_clock::time_point last_modified;
         };
-
         std::vector<FileStat> files;
         size_t total_size;
         size_t average_file_size;
     };
 
-    // Статистика
+    // Статистика (без изменений)
     CacheInfo get_cache_info() const;
     CacheStats get_detailed_stats() const;
 
-    // Геттеры/сеттеры
+    // Геттеры/сеттеры (без изменений)
     std::string get_base_directory() const { return base_directory_.string(); }
     bool is_cache_enabled() const { return cache_enabled_; }
     void set_cache_enabled(bool enabled) { cache_enabled_ = enabled; }
