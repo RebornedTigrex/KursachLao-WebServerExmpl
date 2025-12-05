@@ -3,12 +3,9 @@
 
 RequestHandler::RequestHandler()
     : BaseModule("HTTP Request Handler") {
-    attention_path = "..\\static\\attention.html";
-    errorNotFound_path = "..\\static\\errorNotFound.html";
 }
 
 bool RequestHandler::onInitialize() {
-    setupBasicHtmlPages();
     setupDefaultRoutes();
     std::cout << "RequestHandler initialized with " << routeHandlers_.size() << " routes" << std::endl;
     if (file_cache_) {
@@ -29,10 +26,10 @@ void RequestHandler::addRouteHandler(const std::string& path,
 
 void RequestHandler::setupDefaultRoutes() {
     // Обработчик для корневого пути
-    addRouteHandler("/", [](const http::request<http::string_body>& req, http::response<http::string_body>& res) {
+    /*addRouteHandler("/", [](const http::request<http::string_body>& req, http::response<http::string_body>& res) {
         res.set(http::field::content_type, "text/plain");
         res.body() = "Hello from RequestHandler module!";
-        });
+        });*/
     // Обработчик для /status
     addRouteHandler("/status", [](const http::request<http::string_body>& req, http::response<http::string_body>& res) {
         res.set(http::field::content_type, "application/json");

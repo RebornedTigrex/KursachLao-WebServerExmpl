@@ -3,97 +3,127 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ой-ой!</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min">
+    <title>HR Harmony Hub | Attention</title>
+    <link rel="stylesheet" href="/style">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+    <script src="https://unpkg.com/feather-icons"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+        .attention-page {
+            animation: fadeIn 0.8s ease-out;
         }
         
-        body {
-            background-color: #0d1117;
-            color: #f0f6fc;
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-            line-height: 1.5;
-            overflow-x: hidden;
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
         
-        .container {
-            max-width: 1280px;
-            margin: 0 auto;
-            padding: 0 24px;
+        .main-message {
+            font-size: 3.5rem;
+            font-weight: 800;
+            line-height: 1;
+            margin-bottom: 0.5rem;
+            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         }
         
-        /* Навигация */
-        .navbar {
-            padding: 16px 0;
-            border-bottom: 1px solid #30363d;
+        .sub-message {
+            font-size: 1.75rem;
+            color: #6b7280;
+            margin-bottom: 1.5rem;
+            line-height: 1.3;
         }
         
-        .nav-content {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-        
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 24px;
-            font-weight: 700;
-            color: #f0f6fc;
-            text-decoration: none;
-        }
-        
-        .logo-icon {
-            color: #f78166;
-        }
-        
-        .nav-links {
-            display: flex;
-            gap: 24px;
-        }
-        
-        .nav-links a {
-            color: #c9d1d9;
-            text-decoration: none;
-            font-size: 14px;
-            transition: color 0.2s;
-        }
-        
-        .nav-links a:hover {
-            color: #f0f6fc;
-        }
-        
-        /* Основное содержимое */
-        .main-content {
-            flex: 1;
+        .warning-message {
+            font-size: 1.5rem;
+            color: #4b5563;
+            margin-top: 2rem;
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 80px 0;
+            gap: 12px;
         }
         
-        .error-message {
-            text-align: center;
-            max-width: 800px;
-            padding: 40px;
-            border-radius: 12px;
-            background-color: rgba(22, 27, 34, 0.7);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-            border: 1px solid #30363d;
+        .emoji {
+            font-size: 2rem;
+            animation: pulse 2s infinite;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+        
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.1);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+        
+        .ip-display {
+            background-color: #f3f4f6;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.75rem;
+            padding: 1rem 1.5rem;
+            font-family: 'Courier New', monospace;
+            color: #374151;
+            margin: 2rem 0;
+            display: inline-block;
             position: relative;
             overflow: hidden;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
         }
         
-        /* Анимированные элементы фона */
-        .background-elements {
+        .ip-display::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.1), transparent);
+            animation: shimmer 4s infinite;
+        }
+        
+        @keyframes shimmer {
+            0% {
+                left: -100%;
+            }
+            100% {
+                left: 100%;
+            }
+        }
+        
+        .attention-card {
+            background: white;
+            border-radius: 1rem;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            padding: 3rem;
+            position: relative;
+            overflow: hidden;
+            max-width: 800px;
+            width: 100%;
+        }
+        
+        .attention-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #ef4444, #f97316, #eab308, #22c55e, #3b82f6, #8b5cf6, #ec4899);
+        }
+        
+        .bg-animation {
             position: absolute;
             top: 0;
             left: 0;
@@ -107,12 +137,13 @@
             position: absolute;
             border-radius: 50%;
             opacity: 0.1;
+            filter: blur(40px);
         }
         
         .circle-1 {
             width: 300px;
             height: 300px;
-            background: linear-gradient(135deg, #238636, #2ea043);
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
             top: -150px;
             right: -100px;
         }
@@ -120,273 +151,249 @@
         .circle-2 {
             width: 200px;
             height: 200px;
-            background: linear-gradient(135deg, #f78166, #da3633);
+            background: linear-gradient(135deg, #ef4444, #f97316);
             bottom: -100px;
             left: -50px;
         }
         
-        /* Текст сообщения */
-        .main-text {
-            font-size: 5.5rem;
-            font-weight: 800;
-            color: #f0f6fc;
-            margin-bottom: 16px;
-            line-height: 1.1;
-            text-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+        .circle-3 {
+            width: 150px;
+            height: 150px;
+            background: linear-gradient(135deg, #22c55e, #eab308);
+            top: 50%;
+            left: 10%;
         }
         
-        .sub-text {
-            font-size: 2.2rem;
-            color: #8b949e;
-            margin-bottom: 32px;
-            line-height: 1.3;
-        }
-        
-        .warning-text {
-            font-size: 1.6rem;
-            color: #c9d1d9;
-            margin-top: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 12px;
-        }
-        
-        .emoji {
-            font-size: 2rem;
-            animation: pulse 2s infinite;
-        }
-        
-        /* Анимация пульсации для эмодзи */
-        @keyframes pulse {
-            0% {
-                transform: scale(1);
-            }
-            50% {
-                transform: scale(1.1);
-            }
-            100% {
-                transform: scale(1);
-            }
-        }
-        
-        /* IP адрес (декоративный) */
-        .ip-display {
-            background-color: #161b22;
-            border: 1px solid #30363d;
-            border-radius: 6px;
-            padding: 16px 24px;
-            margin-top: 32px;
-            font-family: 'Courier New', monospace;
-            font-size: 1.1rem;
-            color: #8b949e;
-            display: inline-block;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .ip-display::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(32, 111, 235, 0.2), transparent);
-            animation: shimmer 3s infinite;
-        }
-        
-        @keyframes shimmer {
-            0% {
-                left: -100%;
-            }
-            100% {
-                left: 100%;
-            }
-        }
-        
-        /* Подвал */
-        .footer {
-            padding: 40px 0;
-            border-top: 1px solid #30363d;
-            color: #8b949e;
-            font-size: 14px;
-        }
-        
-        .footer-content {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: space-between;
-            gap: 24px;
-        }
-        
-        .footer-links {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 16px;
-        }
-        
-        .footer-links a {
-            color: #8b949e;
-            text-decoration: none;
-        }
-        
-        .footer-links a:hover {
-            color: #f0f6fc;
-            text-decoration: underline;
-        }
-        
-        /* Адаптивность */
         @media (max-width: 768px) {
-            .main-text {
-                font-size: 3.5rem;
-            }
-            
-            .sub-text {
-                font-size: 1.6rem;
-            }
-            
-            .warning-text {
-                font-size: 1.2rem;
-            }
-            
-            .nav-links {
-                display: none;
-            }
-            
-            .footer-content {
-                flex-direction: column;
-                text-align: center;
-            }
-        }
-        
-        @media (max-width: 480px) {
-            .main-text {
+            .main-message {
                 font-size: 2.5rem;
             }
             
-            .sub-text {
-                font-size: 1.2rem;
+            .sub-message {
+                font-size: 1.25rem;
             }
             
-            .warning-text {
-                font-size: 1rem;
+            .warning-message {
+                font-size: 1.1rem;
                 flex-direction: column;
                 gap: 8px;
             }
             
-            .error-message {
-                padding: 24px;
+            .attention-card {
+                padding: 2rem;
+                margin: 1rem;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .main-message {
+                font-size: 2rem;
+            }
+            
+            .sub-message {
+                font-size: 1rem;
+            }
+            
+            .warning-message {
+                font-size: 0.9rem;
+            }
+            
+            .ip-display {
+                font-size: 0.85rem;
+                padding: 0.75rem 1rem;
             }
         }
     </style>
 </head>
-<body>
-    <!-- Навигация -->
-    <header class="navbar">
-        <div class="container nav-content">
-            <a href="#" class="logo">
-                <!-- <i class="fab fa-github logo-icon"></i> -->
-                <span>Tigrex Server</span>
-            </a>
-            <!-- <div class="nav-links">
-                <a href="#">Главная</a>
-                <a href="#">Функции</a>
-                <a href="#">Безопасность</a>
-                <a href="#">Поддержка</a>
-                <a href="#">Войти</a>
-            </div> -->
-        </div>
-    </header>
-
-    <!-- Основное содержимое -->
-    <main class="main-content">
-        <div class="container">
-            <div class="error-message">
-                <!-- Декоративные элементы фона -->
-                <div class="background-elements">
+<body class="bg-gray-50">
+    <custom-navbar></custom-navbar>
+    
+    <main class="container mx-auto px-4 py-8">
+        <div class="attention-page min-h-[70vh] flex flex-col items-center justify-center">
+            <div class="attention-card text-center">
+                <!-- Анимированный фон -->
+                <div class="bg-animation">
                     <div class="circle circle-1"></div>
                     <div class="circle circle-2"></div>
+                    <div class="circle circle-3"></div>
                 </div>
                 
                 <!-- Основной текст -->
-                <h1 class="main-text">Дружище,</h1>
-                <p class="sub-text">Я знаю твой IP адрес.</p>
+                <h1 class="main-message text-gray-900">
+                    Дружище,
+                </h1>
+                
+                <!-- Второстепенный текст -->
+                <p class="sub-message text-gray-600">
+                    Я знаю твой IP адрес.
+                </p>
                 
                 <!-- Декоративный IP адрес -->
                 <div class="ip-display">
-                    192.168.1.1 • Московское время: <span id="time">00:00:00</span> • Браузер: Chrome/Windows
+                    <span id="fake-ip">Загрузка IP...</span> • 
+                    <span id="time">00:00:00</span> (МСК) • 
+                    <span id="browser-info"></span>
                 </div>
                 
                 <!-- Предупреждение -->
-                <p class="warning-text">
+                <p class="warning-message">
                     Постарайся так больше не делать, ладно? 
-                    <span class="emoji">😊</span>
+                    <span class="emoji" id="emoji">😊</span>
                 </p>
+                
+                <!-- Кнопки действий -->
+                <div class="flex flex-wrap gap-4 justify-center mt-8">
+                    <a href="/" 
+                       class="inline-flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg transition-all duration-200 hover:shadow-lg">
+                        <i data-feather="home" class="w-5 h-5"></i>
+                        Вернуться на главную
+                    </a>
+                    
+                    <a href="employees" 
+                       class="inline-flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-lg transition-all duration-200 hover:shadow-lg">
+                        <i data-feather="users" class="w-5 h-5"></i>
+                        Список сотрудников
+                    </a>
+                </div>
+                
+                
             </div>
         </div>
     </main>
-
-    <!-- Подвал -->
-    <!-- <footer class="footer">
-        <div class="container footer-content">
-            <div>© 2023 GitHub, Inc.</div>
-            <div class="footer-links">
-                <a href="#">Условия</a>
-                <a href="#">Конфиденциальность</a>
-                <a href="#">Документация</a>
-                <a href="#">Статус</a>
-                <a href="#">Контакты</a>
-            </div>
-        </div>
-    </footer> -->
-
+    
+    <custom-footer></custom-footer>
+    
+    <!-- Components -->
+    <script src="/components/navbar"></script>
+    <script src="/components/footer"></script>
+    
     <script>
-        // Обновление времени
-        function updateTime() {
-            const now = new Date();
-            const timeString = now.toLocaleTimeString('ru-RU', {
-                hour: '2-digit',
-                minute: '2-digit',
-                second: '2-digit',
-                timeZone: 'Europe/Moscow'
+        feather.replace();
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            // Генерация случайного IP
+            function generateRandomIP() {
+                const octets = [];
+                for (let i = 0; i < 4; i++) {
+                    octets.push(Math.floor(Math.random() * 255));
+                }
+                return octets.join('.');
+            }
+            
+            // Определение браузера
+            function getBrowserInfo() {
+                const userAgent = navigator.userAgent;
+                let browser = "Неизвестный браузер";
+                
+                if (userAgent.includes("Chrome") && !userAgent.includes("Edg")) {
+                    browser = "Chrome";
+                } else if (userAgent.includes("Firefox")) {
+                    browser = "Firefox";
+                } else if (userAgent.includes("Safari") && !userAgent.includes("Chrome")) {
+                    browser = "Safari";
+                } else if (userAgent.includes("Edg")) {
+                    browser = "Edge";
+                } else if (userAgent.includes("Opera") || userAgent.includes("OPR")) {
+                    browser = "Opera";
+                }
+                
+                const os = userAgent.includes("Windows") ? "Windows" : 
+                          userAgent.includes("Mac") ? "macOS" : 
+                          userAgent.includes("Linux") ? "Linux" : "Unknown OS";
+                
+                return `${browser} • ${os}`;
+            }
+            
+            // Обновление времени
+            function updateTime() {
+                const now = new Date();
+                const timeString = now.toLocaleTimeString('ru-RU', {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit',
+                    timeZone: 'Europe/Moscow'
+                });
+                document.getElementById('time').textContent = timeString;
+            }
+            
+            // Обновление IP и информации
+            function updateIPDisplay() {
+                const ipElement = document.getElementById('fake-ip');
+                const browserElement = document.getElementById('browser-info');
+                
+                const ip = generateRandomIP();
+                const browserInfo = getBrowserInfo();
+                
+                ipElement.textContent = ip;
+                browserElement.textContent = browserInfo;
+            }
+            
+            // Инициализация
+            updateTime();
+            updateIPDisplay();
+            
+            // Обновление времени каждую секунду
+            setInterval(updateTime, 1000);
+            
+            // Обновление IP каждые 5 секунд
+            setInterval(updateIPDisplay, 5000);
+            
+            // Анимация эмодзи
+            const emojiElement = document.getElementById('emoji');
+            const emojis = ['😊', '😉', '😄', '😎', '🤗', '😇', '🙂', '😅'];
+            let emojiIndex = 0;
+            
+            // При наведении на эмодзи
+            emojiElement.addEventListener('mouseenter', () => {
+                emojiIndex = (emojiIndex + 1) % emojis.length;
+                emojiElement.textContent = emojis[emojiIndex];
+                emojiElement.style.transform = 'scale(1.3) rotate(5deg)';
             });
-            document.getElementById('time').textContent = timeString;
-        }
-        
-        // Инициализация времени
-        updateTime();
-        setInterval(updateTime, 1000);
-        
-        // Генерация случайного IP (для демонстрации)
-        function generateRandomIP() {
-            return `${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}`;
-        }
-        
-        // Обновление IP адреса каждые 5 секунд
-        function updateIP() {
-            const ipDisplay = document.querySelector('.ip-display');
-            const currentText = ipDisplay.textContent;
-            const newIP = generateRandomIP();
-            const newText = currentText.replace(/\d+\.\d+\.\d+\.\d+/, newIP);
-            ipDisplay.textContent = newText;
-        }
-        
-        // Начинаем обновление IP через 3 секунды
-        setTimeout(() => {
-            updateIP();
-            setInterval(updateIP, 5000);
-        }, 3000);
-        
-        // Анимация при наведении на эмодзи
-        const emoji = document.querySelector('.emoji');
-        emoji.addEventListener('mouseenter', function() {
-            this.style.transform = 'scale(1.5)';
-            this.style.transition = 'transform 0.3s';
-        });
-        
-        emoji.addEventListener('mouseleave', function() {
-            this.style.transform = 'scale(1)';
+            
+            emojiElement.addEventListener('mouseleave', () => {
+                emojiElement.style.transform = 'scale(1) rotate(0deg)';
+            });
+            
+            // При клике на эмодзи
+            emojiElement.addEventListener('click', () => {
+                const randomEmoji = emojis[Math.floor(Math.random() * emojis.length)];
+                emojiElement.textContent = randomEmoji;
+                
+                // Создаем эффект "всплытия" эмодзи
+                for (let i = 0; i < 5; i++) {
+                    setTimeout(() => {
+                        const floatingEmoji = document.createElement('div');
+                        floatingEmoji.textContent = randomEmoji;
+                        floatingEmoji.className = 'fixed text-2xl pointer-events-none z-50';
+                        floatingEmoji.style.left = `${50 + (Math.random() * 40 - 20)}%`;
+                        floatingEmoji.style.top = '60%';
+                        floatingEmoji.style.opacity = '0.8';
+                        document.body.appendChild(floatingEmoji);
+                        
+                        // Анимация всплытия
+                        setTimeout(() => {
+                            floatingEmoji.style.transition = 'all 1.5s ease-out';
+                            floatingEmoji.style.top = '-50px';
+                            floatingEmoji.style.opacity = '0';
+                            floatingEmoji.style.transform = `rotate(${Math.random() * 360}deg)`;
+                            
+                            setTimeout(() => {
+                                if (floatingEmoji.parentNode) {
+                                    document.body.removeChild(floatingEmoji);
+                                }
+                            }, 1500);
+                        }, 10);
+                    }, i * 200);
+                }
+            });
+            
+            // Добавляем небольшой эффект при загрузке
+            setTimeout(() => {
+                document.querySelector('.attention-card').classList.add('animate-pulse');
+                setTimeout(() => {
+                    document.querySelector('.attention-card').classList.remove('animate-pulse');
+                }, 1000);
+            }, 500);
         });
     </script>
 </body>
