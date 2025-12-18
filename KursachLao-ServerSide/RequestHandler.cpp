@@ -5,6 +5,18 @@ RequestHandler::RequestHandler()
     : BaseModule("HTTP Request Handler") {
 }
 
+void RequestHandler::addDynamicRouteHandler(const std::string& regexPattern,
+    std::function<void(const http::request<http::string_body>&, http::response<http::string_body>&)> handler) {
+    try {
+        std::regex re(regexPattern);  // Компилируем regex заранее для эффективности
+        dynamicRouteHandlers_.emplace_back(re, handler);
+    }
+    catch (const std::regex_error& e) {
+        std::cerr << "Invalid regex pattern: " << regexPattern << " - " << e.what() << std::endl;
+        // Для MVP: не добавляем, но не крашим
+    }
+}
+
 bool RequestHandler::onInitialize() {
     setupDefaultRoutes();
     std::cout << "RequestHandler initialized with " << routeHandlers_.size() << " routes" << std::endl;

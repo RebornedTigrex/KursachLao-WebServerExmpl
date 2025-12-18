@@ -1,21 +1,22 @@
 ﻿#pragma once
 #include "BaseModule.h"
-#include "FileCache.h"  // NEW: Для доступа к кэшу
+#include "FileCache.h"
 
 #include <boost/beast/http.hpp>
 #include <sstream>
 #include <fstream>
+#include <regex>
 #include <vector>
-#include <unordered_map>  // UPDATED: Для routeHandlers_
+#include <unordered_map>
 
 namespace beast = boost::beast;
 namespace http = beast::http;
 
 class RequestHandler : public BaseModule {
-    FileCache* file_cache_ = nullptr;  // NEW: Указатель на кэш (инжектируется в main)
+    FileCache* file_cache_ = nullptr;  // Указатель на кэш (инжектируется в main)
 
 
-    // NEW: Парсинг target на path и query (простой split по ?)
+    // Парсинг target на path и query (простой split по ?)
     std::pair<std::string, std::string> parseTarget(const std::string& target) {
         size_t pos = target.find('?');
         if (pos == std::string::npos) {
@@ -26,12 +27,17 @@ class RequestHandler : public BaseModule {
 
 public:
     RequestHandler();
-    // NEW: Метод для инжекции кэша (только из main)
+    // Метод для инжекции кэша (только из main)
     void setFileCache(FileCache* cache) {
         file_cache_ = cache;
         std::string base_dir = file_cache_->get_base_directory();
 
     }
+
+    // Новый метод для динамических роутов (regex-паттерн)
+    void addDynamicRouteHandler(const std::string& regexPattern,
+        std::function<void(const http::request<http::string_body>&, http::response<http::string_body>&)> handler);
+
     // Методы для регистрации обработчиков конкретных путей
     void addRouteHandler(const std::string& path, std::function<void(const http::request<http::string_body>&, http::response<http::string_body>&)> handler);
 
@@ -41,7 +47,7 @@ public:
         res.set(http::field::server, "ModularServer");
         // FIXED: Uncomment и используй req.keep_alive() — mirror client
         res.keep_alive(req.keep_alive());
-        // NEW: Explicit Connection header для force keep-alive (если !reиq.keep_alive(), но для MVP — всегда true для 1.1)
+        // Explicit Connection header для force keep-alive (если !reиq.keep_alive(), но для MVP — всегда true для 1.1)
         if (req.version() >= 11 && res.keep_alive()) {
             res.set(http::field::connection, "keep-alive");
         }
@@ -49,7 +55,7 @@ public:
         std::string target = std::string(req.target());
         auto [path, query] = parseTarget(target);
 
-        // UPDATED: Проверяем wildcard /* для динамического поиска в кэше (только по path!)
+        // Проверяем wildcard /* для динамического поиска в кэше (только по path!)
         auto wildcard_it = routeHandlers_.find("/*"); //FIXME: Повышает время отклика на (n)
         if (wildcard_it != routeHandlers_.end() && file_cache_) {
             file_cache_->refresh_file(path);
@@ -65,13 +71,19 @@ public:
             }
         }
 
-        // UPDATED: Обычная логика для точных маршрутов (match по path)
+		// Добавлена динамика по regex-паттернам
         auto it = routeHandlers_.find(path);
         if (it != routeHandlers_.end()) {
-            // NEW: Передаём query в handler (если lambda ожидает — расширь signature)
+            // Передаём query в handler (если lambda ожидает — расширь signature)
             // Для MVP: если handler статический, игнорируем query
             // Пример: it->second(req, res, query);  // Если изменишь lambda на void(const sRequest&, sResponce&, const std::string& query)
             it->second(req, res); 
+        }
+        else if (target.find("api/") != std::string::npos) {
+            res.set(http::field::content_type, "application/json");
+            res.result(http::status::not_found);
+            res.set(http::field::cache_control, "no-cache, must-revalidate");
+            res.body() = R"({"status": "not_found"})";
         }
         else if (target.find("../") != std::string::npos) {
             res.set(http::field::content_type, "text/html");
@@ -80,11 +92,20 @@ public:
             res.set(http::field::cache_control, "public, max-age=300");
             res.body() = cached.value().content;
         }
-        else if (target.find("api/") != std::string::npos) {
-            res.set(http::field::content_type, "application/json");
-            res.result(http::status::not_found);
-            res.set(http::field::cache_control, "no-cache, must-revalidate");
-            res.body() = R"({"status": "not_found"})";
+        else if (it == routeHandlers_.end() && !dynamicRouteHandlers_.empty()) {
+            bool handled = false;
+            for (const auto& [re, handler] : dynamicRouteHandlers_) {
+                if (std::regex_match(path, re)) {  // Матчим весь path с regex
+                    handler(req, res);
+                    handled = true;
+                    break;  // Первый матч — обрабатываем (порядок в векторе важен: более конкретные выше)
+                }
+            }
+            if (handled) {
+                res.prepare_payload();
+                send(std::move(res));
+                return;
+            }
         }
         else {
             res.set(http::field::content_type, "text/html");
@@ -102,6 +123,11 @@ protected:
     void onShutdown() override;
 
 private:
+    std::vector<std::pair<std::regex,
+        std::function
+        <void(const http::request<http::string_body>&, http::response<http::string_body>&)>
+    >> dynamicRouteHandlers_;
+
     std::unordered_map<
         std::string,
         std::function<void(const http::request<http::string_body>&, http::response<http::string_body>&)>

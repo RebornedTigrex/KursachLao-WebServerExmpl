@@ -52,8 +52,7 @@ void CreateAPIHandlers(RequestHandler* module, ApiProcessor* apiProcessor) {
         }
         });
 
-    // Исправляем регулярку — добавляем опциональный слеш в конце
-    module->addRouteHandler("/api/employees/\\d+(?:/)?", [apiProcessor](const sRequest& req, sResponce& res) {
+    module->addDynamicRouteHandler("/api/employees/\\d+(?:/)?", [apiProcessor](const sRequest& req, sResponce& res) {
         if (req.method() == http::verb::put) {
             apiProcessor->handleUpdateEmployee(req, res);
         }
@@ -61,8 +60,7 @@ void CreateAPIHandlers(RequestHandler* module, ApiProcessor* apiProcessor) {
             res.result(http::status::method_not_allowed);
         }
         });
-
-    module->addRouteHandler("/api/hours/\\d+", [apiProcessor](const sRequest& req, sResponce& res) {
+    module->addDynamicRouteHandler("/api/hours/\\d+(?:/)?", [apiProcessor](const sRequest& req, sResponce& res) {
         if (req.method() == http::verb::post) {
             apiProcessor->handleAddHours(req, res);
         }
@@ -70,9 +68,7 @@ void CreateAPIHandlers(RequestHandler* module, ApiProcessor* apiProcessor) {
             res.result(http::status::method_not_allowed);
         }
         });
-
-    // Исправляем пути для штрафов и премий — приводим к тому, что ожидает фронт
-    module->addRouteHandler("/api/employees/\\d+/penalties", [apiProcessor](const sRequest& req, sResponce& res) {
+    module->addDynamicRouteHandler("/api/employees/\\d+/penalties(?:/)?", [apiProcessor](const sRequest& req, sResponce& res) {
         if (req.method() == http::verb::post) {
             apiProcessor->handleAddPenalty(req, res);
         }
@@ -80,8 +76,7 @@ void CreateAPIHandlers(RequestHandler* module, ApiProcessor* apiProcessor) {
             res.result(http::status::method_not_allowed);
         }
         });
-
-    module->addRouteHandler("/api/employees/\\d+/bonuses", [apiProcessor](const sRequest& req, sResponce& res) {
+    module->addDynamicRouteHandler("/api/employees/\\d+/bonuses(?:/)?", [apiProcessor](const sRequest& req, sResponce& res) {
         if (req.method() == http::verb::post) {
             apiProcessor->handleAddBonus(req, res);
         }
