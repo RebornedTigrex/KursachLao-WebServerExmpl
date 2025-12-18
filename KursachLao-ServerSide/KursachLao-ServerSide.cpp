@@ -34,26 +34,26 @@ void printConnectionInfo(tcp::socket& socket) {
 }
 
 void CreateAPIHandlers(RequestHandler* module, ApiProcessor* apiProcessor) {
-    //return; // TODO: Добавить Api обработчики
-    // Регистрация API-роутов через лямбды, которые вызывают методы ApiProcessor
-    module->addRouteHandler("/api/data", [apiProcessor](const sRequest& req, sResponce& res) {
+    // Основной эндпоинт для всех данных — как ожидает фронт
+    module->addRouteHandler("/api/all-data", [apiProcessor](const sRequest& req, sResponce& res) {
         apiProcessor->handleGetAllData(req, res);
         });
 
+    // Список сотрудников (можно оставить как есть, но лучше сделать отдельный обработчик позже)
     module->addRouteHandler("/api/employees", [apiProcessor](const sRequest& req, sResponce& res) {
         if (req.method() == http::verb::post) {
             apiProcessor->handleAddEmployee(req, res);
         }
         else if (req.method() == http::verb::get) {
-            apiProcessor->handleGetAllData(req, res); // Можно временно использовать как список
+            apiProcessor->handleGetAllData(req, res); // временно ок — фронт пока не использует отдельно
         }
         else {
             res.result(http::status::method_not_allowed);
-            res.body() = "Allowed: GET, POST";
         }
         });
 
-    module->addRouteHandler("/api/employees/\\d+", [apiProcessor](const sRequest& req, sResponce& res) {
+    // Исправляем регулярку — добавляем опциональный слеш в конце
+    module->addRouteHandler("/api/employees/\\d+(?:/)?", [apiProcessor](const sRequest& req, sResponce& res) {
         if (req.method() == http::verb::put) {
             apiProcessor->handleUpdateEmployee(req, res);
         }
@@ -71,7 +71,8 @@ void CreateAPIHandlers(RequestHandler* module, ApiProcessor* apiProcessor) {
         }
         });
 
-    module->addRouteHandler("/api/penalties/\\d+", [apiProcessor](const sRequest& req, sResponce& res) {
+    // Исправляем пути для штрафов и премий — приводим к тому, что ожидает фронт
+    module->addRouteHandler("/api/employees/\\d+/penalties", [apiProcessor](const sRequest& req, sResponce& res) {
         if (req.method() == http::verb::post) {
             apiProcessor->handleAddPenalty(req, res);
         }
@@ -80,7 +81,7 @@ void CreateAPIHandlers(RequestHandler* module, ApiProcessor* apiProcessor) {
         }
         });
 
-    module->addRouteHandler("/api/bonuses/\\d+", [apiProcessor](const sRequest& req, sResponce& res) {
+    module->addRouteHandler("/api/employees/\\d+/bonuses", [apiProcessor](const sRequest& req, sResponce& res) {
         if (req.method() == http::verb::post) {
             apiProcessor->handleAddBonus(req, res);
         }
