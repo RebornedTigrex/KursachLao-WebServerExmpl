@@ -1,4 +1,4 @@
-// dataCache.js - Improved Data Cache Module with better server sync and batch fetching
+// modules/dataCache.js - Improved Data Cache Module with proper error propagation for notifications
 
 class DataCache {
     constructor(options = {}) {
@@ -8,11 +8,11 @@ class DataCache {
             employees: [],
             hours: [], // Array of {employeeId, regularHours, overtime, undertime}
             penalties: [], // Array of {id, employeeId, reason, amount, date}
-            bonuses: [], // Array of {id, employeeId, note, amount, date} - Standardized to 'note' instead of 'reason'
+            bonuses: [], // Array of {id, employeeId, note, amount, date}
             lastUpdated: null
         };
 
-        this.apiBaseUrl = options.apiBaseUrl || '/api'; // Changed to relative path for real backend
+        this.apiBaseUrl = options.apiBaseUrl || '/api';
         this.enablePersistence = typeof options.enablePersistence === 'boolean' ? options.enablePersistence : true;
 
         this._loadFromStorage();
@@ -25,7 +25,7 @@ class DataCache {
             const raw = localStorage.getItem(this.storageKey);
             if (raw) {
                 const parsed = JSON.parse(raw);
-                this.cache = { ...this.cache, ...parsed }; // Merge with defaults
+                this.cache = { ...this.cache, ...parsed };
             }
         } catch (err) {
             console.warn('Failed to load cache from localStorage:', err);
@@ -57,12 +57,13 @@ class DataCache {
         return diffInMinutes > 5; // 5-minute cache TTL
     }
 
-    // --- Network helper with improved error handling and auth (placeholder) ---
+    // --- Network helper with structured error object ---
     async _syncToServer(method, path, body, options = {}) {
         try {
             const url = `${this.apiBaseUrl}${path}`;
             const headers = { 'Content-Type': 'application/json' };
-            // Placeholder for auth: headers['Authorization'] = 'Bearer ' + localStorage.getItem('authToken');
+            // Placeholder for future auth
+            // headers['Authorization'] = 'Bearer ' + localStorage.getItem('authToken');
 
             const res = await fetch(url, {
                 method,
@@ -72,19 +73,24 @@ class DataCache {
             });
 
             if (!res.ok) {
-                const text = await res.text();
-                throw new Error(`Server error: ${res.status} - ${text}`);
+                const text = await res.text(); // Получаем тело ответа (обычно JSON с ошибкой)
+                const error = {
+                    status: res.status,
+                    statusText: res.statusText,
+                    body: text
+                };
+                throw error; // Структурированная ошибка для notifications.js
             }
 
             const data = await res.json();
-            // Check for server lastUpdated to detect changes
+
             if (data.lastUpdated && new Date(data.lastUpdated) > new Date(this.cache.lastUpdated || 0)) {
                 this.cache.lastUpdated = data.lastUpdated;
             }
             return data;
         } catch (err) {
-            // console.warn('Failed to sync with server:', err);
-            throw err; // Re-throw to handle offline scenarios
+            // Сетевые ошибки (нет соединения и т.п.) тоже пробрасываем
+            throw err;
         }
     }
 
@@ -95,15 +101,13 @@ class DataCache {
         this._saveToStorage();
     }
 
-    // --- Improved Public API with batch fetching ---
-    // Fetch all data in one go if expired or forced
+    // --- Public API ---
     async fetchAllData(forceRefresh = false) {
         if (!forceRefresh && !this._isCacheExpired()) {
             return this.cache;
         }
 
         try {
-            // Single endpoint for all data to avoid multiple requests
             const serverData = await this._syncToServer('GET', '/all-data');
             if (serverData) {
                 this.cache = { ...this.cache, ...serverData };
@@ -111,11 +115,10 @@ class DataCache {
                 return this.cache;
             }
         } catch (err) {
-            // Fallback to local/mock if offline
-            console.warn('Using local cache due to network error');
+            console.warn('Using local cache due to network error:', err);
         }
 
-        // Mock/fallback data only if no cache
+        // Mock/fallback only if cache is empty
         if (!this.cache.employees.length) {
             this.cache.employees = [
                 { id: 1, fullname: 'John Doe', status: 'hired', salary: 50000, penalties: 2, bonuses: 1, totalPenalties: 400, totalBonuses: 500 },
@@ -129,15 +132,14 @@ class DataCache {
                 { employeeId: 3, regularHours: 120, overtime: 0, undertime: 40 },
                 { employeeId: 4, regularHours: 0, overtime: 0, undertime: 0 }
             ];
-            this.cache.penalties = []; // Add mock if needed
+            this.cache.penalties = [];
             this.cache.bonuses = [];
-            this._computeDashboard(); // Compute aggregates locally
+            this._computeDashboard();
         }
         this._markUpdated();
         return this.cache;
     }
 
-    // Compute dashboard aggregates locally from cache
     _computeDashboard() {
         const hiredEmployees = this.cache.employees.filter(e => e.status === 'hired');
         this.cache.dashboard = {
@@ -164,36 +166,56 @@ class DataCache {
         return this.cache.hours.find(h => h.employeeId === employeeId) || { employeeId, regularHours: 0, overtime: 0, undertime: 0 };
     }
 
+    // ---------- CRUD operations with proper error propagation ----------
     async addEmployee(employeeData) {
+        const payloadForServer = {
+            fullname: employeeData.fullname.trim(),
+            status: employeeData.status || 'interview',
+            salary: Number(employeeData.salary)
+        };
+
+        const tempId = Date.now();
         const newEmployee = {
-            ...employeeData,
-            id: Date.now(), // Temporary ID, server will assign real one
-            penalties: employeeData.penalties || 0,
-            bonuses: employeeData.bonuses || 0,
+            id: tempId,
+            ...payloadForServer,
+            penalties: 0,
+            bonuses: 0,
             totalPenalties: 0,
             totalBonuses: 0
         };
+
+        // Optimistic UI update
         this.cache.employees.push(newEmployee);
-        this.cache.hours.push({ employeeId: newEmployee.id, regularHours: 0, overtime: 0, undertime: 0 });
+        this.cache.hours.push({ employeeId: tempId, regularHours: 0, overtime: 0, undertime: 0 });
         this._computeDashboard();
         this._markUpdated();
 
         try {
-            const serverResp = await this._syncToServer('POST', '/employees', newEmployee);
+            const serverResp = await this._syncToServer('POST', '/employees', payloadForServer);
+
             if (serverResp && serverResp.id) {
-                // Update with server ID and data
-                const idx = this.cache.employees.findIndex(e => e.id === newEmployee.id);
-                if (idx !== -1) this.cache.employees[idx] = serverResp;
-                // Update hours if needed
-                await this.fetchAllData(true); // Force refresh after create
+                const empIdx = this.cache.employees.findIndex(e => e.id === tempId);
+                if (empIdx !== -1) {
+                    this.cache.employees[empIdx] = { ...this.cache.employees[empIdx], ...serverResp };
+                }
+                const hoursIdx = this.cache.hours.findIndex(h => h.employeeId === tempId);
+                if (hoursIdx !== -1) {
+                    this.cache.hours[hoursIdx].employeeId = serverResp.id;
+                }
+                await this.fetchAllData(true);
             }
-        } catch (err) {}
+        } catch (error) {
+            // Пробрасываем ошибку дальше — обработается в UI (notifications)
+            throw error;
+        }
+
         return newEmployee;
     }
 
     async updateEmployee(employeeId, changes) {
         const emp = this.cache.employees.find(e => e.id === employeeId);
         if (!emp) throw new Error('Employee not found');
+
         Object.assign(emp, changes);
         this._computeDashboard();
         this._markUpdated();
@@ -201,7 +223,10 @@ class DataCache {
         try {
             await this._syncToServer('PUT', `/employees/${employeeId}`, emp);
             await this.fetchAllData(true);
-        } catch (err) {}
+        } catch (error) {
+            throw error;
+        }
+
         return emp;
     }
 
@@ -221,7 +246,9 @@ class DataCache {
         try {
             await this._syncToServer('POST', `/hours/${employeeId}`, existing);
             await this.fetchAllData(true);
-        } catch (err) {}
+        } catch (error) {
+            throw error;
+        }
     }
 
     async addPenalty(employeeId, penaltyData) {
@@ -239,7 +266,9 @@ class DataCache {
         try {
             await this._syncToServer('POST', `/employees/${employeeId}/penalties`, penalty);
             await this.fetchAllData(true);
-        } catch (err) {}
+        } catch (error) {
+            throw error;
+        }
     }
 
     async addBonus(employeeId, bonusData) {
@@ -257,7 +286,9 @@ class DataCache {
         try {
             await this._syncToServer('POST', `/employees/${employeeId}/bonuses`, bonus);
             await this.fetchAllData(true);
-        } catch (err) {}
+        } catch (error) {
+            throw error;
+        }
     }
 
     clearCache() {
@@ -266,7 +297,7 @@ class DataCache {
     }
 }
 
-// Initialize and expose the data cache
+// Initialize and expose globally
 if (!window.dataCache) {
     window.dataCache = new DataCache();
 }
