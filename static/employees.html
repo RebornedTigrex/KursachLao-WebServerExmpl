@@ -1,4 +1,4 @@
-<!-- employees.html - Updated to use fetchAllData, standardize bonus 'note', add validation, fix inconsistencies -->
+<!-- employees.html - Updated to use fetchAllData, standardize bonus 'note', add validation, fix inconsistencies, and extract notifications to separate module -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -39,8 +39,8 @@
                             <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Имя</th>
                             <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Статус</th>
                             <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Зарплата</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Штрафы</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Бонусы</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Штрафы</th> <!-- Эта колонка бессмыслена TODO: заменить на удаление, изменение статуса сотрудника (Уволен и тп)  -->
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Бонусы</th> <!-- Эта колонка бессмыслена TODO: заменить на удаление, изменение статуса сотрудника (Уволен и тп) -->
                         </tr>
                     </thead>
                     <tbody id="employees-table-body" class="bg-white divide-y divide-gray-200">
@@ -141,18 +141,18 @@
             </div>
         </div>
 
-        <!-- Success Notification -->
-        <div id="success-notification" class="fixed bottom-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg hidden">
-            Операция успешно завершена!
-        </div>
+        <!-- Notification Container (now dynamic, managed by module) -->
+        <div id="notification-container" class="fixed bottom-4 right-4 hidden"></div>
 </main>
 
     <custom-footer></custom-footer>
     <!-- Components -->
     <script src="components/navbar"></script>
 <script src="components/footer"></script>
-<!-- Scripts -->
+<!-- Modules -->
     <script src="modules/dataCache"></script>
+    <script src="modules/notifications"></script> <!-- New module for notifications -->
+<!-- Scripts -->
     <script>
         feather.replace();
 
@@ -224,7 +224,6 @@
             // Modal handling
             const modal = document.getElementById('add-employee-modal');
             const form = document.getElementById('add-employee-form');
-            const successNotification = document.getElementById('success-notification');
 
             document.getElementById('add-employee-btn').addEventListener('click', () => {
                 modal.classList.remove('hidden');
@@ -255,24 +254,19 @@
                 submitBtn.disabled = true;
                 submitBtn.textContent = 'Adding...';
 
-                await window.dataCache.addEmployee(formData);
-
-                // Reset form
-                form.reset();
-                modal.classList.add('hidden');
-
-                // Show success notification
-                successNotification.classList.remove('hidden');
-                setTimeout(() => {
-                    successNotification.classList.add('hidden');
-                }, 3000);
-
-                // Reload table
-                reloadEmployeeTable(true);
-
-                // Reset button
-                submitBtn.disabled = false;
-                submitBtn.textContent = 'Добавить сотрудника';
+                try {
+                    await window.dataCache.addEmployee(formData);
+                    form.reset();
+                    modal.classList.add('hidden');
+                    window.notifications.showSuccess('Операция успешно завершена!');
+                    reloadEmployeeTable(true);
+                } catch (error) {
+                    window.notifications.showError(error);
+                } finally {
+                    // Reset button
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Добавить сотрудника';
+                }
             });
 
             // Penalty and Bonus handling
@@ -308,15 +302,14 @@
                     amount: parseFloat(document.getElementById('penalty-amount').value)
                 };
 
-                await window.dataCache.addPenalty(employeeId, penaltyData);
-
-                // Show notification and reload
-                document.getElementById('penalty-modal').classList.add('hidden');
-                document.getElementById('success-notification').classList.remove('hidden');
-                setTimeout(() => {
-                    document.getElementById('success-notification').classList.add('hidden');
-                    reloadEmployeeTable(true);
-                }, 1000);
+                try {
+                    await window.dataCache.addPenalty(employeeId, penaltyData);
+                    document.getElementById('penalty-modal').classList.add('hidden');
+                    window.notifications.showSuccess('Операция успешно завершена!');
+                    setTimeout(() => reloadEmployeeTable(true), 1000);
+                } catch (error) {
+                    window.notifications.showError(error);
+                }
             });
 
             document.getElementById('add-bonus-form').addEventListener('submit', async (e) => {
@@ -329,15 +322,14 @@
                     amount: parseFloat(document.getElementById('bonus-amount').value)
                 };
 
-                await window.dataCache.addBonus(employeeId, bonusData);
-
-                // Show notification and reload
-                document.getElementById('bonus-modal').classList.add('hidden');
-                document.getElementById('success-notification').classList.remove('hidden');
-                setTimeout(() => {
-                    document.getElementById('success-notification').classList.add('hidden');
-                    reloadEmployeeTable(true);
-                }, 1000);
+                try {
+                    await window.dataCache.addBonus(employeeId, bonusData);
+                    document.getElementById('bonus-modal').classList.add('hidden');
+                    window.notifications.showSuccess('Операция успешно завершена!');
+                    setTimeout(() => reloadEmployeeTable(true), 1000);
+                } catch (error) {
+                    window.notifications.showError(error);
+                }
             });
             
             // Listen for cache updates and refresh employee list
