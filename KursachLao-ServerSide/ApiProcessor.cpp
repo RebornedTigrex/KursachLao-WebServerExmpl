@@ -154,13 +154,14 @@ void ApiProcessor::handleGetAllData(const http::request<http::string_body>& req,
         auto bon_res = txn.exec(pqxx::zview("SELECT * FROM bonuses" + since_clause));
         for (const auto& row : bon_res) bonuses_arr.emplace_back(bonusToJson(row));
 
-        auto last_res = txn.exec(pqxx::zview(
-            "SELECT GREATEST("
-            "COALESCE(MAX(updated_at), '1970-01-01'::timestamp) FROM employees, "
-            "COALESCE(MAX(updated_at), '1970-01-01'::timestamp) FROM work_hours, "
-            "COALESCE(MAX(created_at), '1970-01-01'::timestamp) FROM penalties, "
-            "COALESCE(MAX(created_at), '1970-01-01'::timestamp) FROM bonuses"
-            ") AS ts"));
+        auto last_res = txn.exec(pqxx::zview(R"(
+            SELECT GREATEST(
+                COALESCE((SELECT MAX(updated_at) FROM employees),  '1970-01-01'::timestamp),
+                COALESCE((SELECT MAX(updated_at) FROM work_hours),  '1970-01-01'::timestamp),
+                COALESCE((SELECT MAX(created_at) FROM penalties), '1970-01-01'::timestamp),
+                COALESCE((SELECT MAX(created_at) FROM bonuses),   '1970-01-01'::timestamp)
+            ) AS ts
+        )"));
 
         std::string last_updated = last_res[0]["ts"].as<std::string>();
 
