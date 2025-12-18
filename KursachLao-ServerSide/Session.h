@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 
 #include "RequestHandler.h"
 #include "LambdaSenders.h"
@@ -12,7 +12,7 @@ namespace fs = std::filesystem;
 namespace beast = boost::beast;
 namespace http = beast::http;
 
-// UPDATED: Session ñ shared_ptr äëÿ sender lifetime
+// UPDATED: Session Ñ shared_ptr Ğ´Ğ»Ñ sender lifetime
 class session : public std::enable_shared_from_this<session> {
 public:
     session(tcp::socket socket, RequestHandler* module)
@@ -35,13 +35,13 @@ private:
         req_ = {};
         buffer_.consume(buffer_.size());
         http::async_read(socket_, buffer_, req_,
-            [self = shared_from_this()](beast::error_code ec, std::size_t bytes) {  // NEW: äåáàã áàéòû
+            [self = shared_from_this()](beast::error_code ec, std::size_t bytes) {  // NEW: Ğ´ĞµĞ±Ğ°Ğ³ Ğ±Ğ°Ğ¹Ñ‚Ñ‹
                 if (!ec) {
                     std::cout << "Read " << bytes << " bytes for next request" << std::endl;  // Debug: keep-alive reads
                     self->on_read();
                 }
                 else if (ec == http::error::end_of_stream) {
-                    std::cout << "End of stream — closing session" << std::endl;
+                    std::cout << "End of stream â€” closing session" << std::endl;
                     // Graceful close
                     beast::error_code sec;
                     self->socket_.shutdown(net::socket_base::shutdown_both, sec);
@@ -55,13 +55,13 @@ private:
     }
 
     void on_read() {
-        // FIXED: make_shared áåç {} — èñïîëüçóåì default cb â ctor
+        // FIXED: make_shared Ğ±ĞµĞ· {} â€” Ğ¸ÑĞ¿Ğ¾Ğ»ÑŒĞ·ÑƒĞµĞ¼ default cb Ğ² ctor
         auto sp_sender = std::make_shared<LambdaSenders::async_send_lambda<tcp::socket>>(socket_, close_);
         auto sender_ref = std::ref(*sp_sender);  // Ref to deref sp_sender (valid)
 
-        // Ëÿìáäà äëÿ after_write — çàõâàò sp_sender (copy shared) + self (no dangling)
+        // Ğ›ÑĞ¼Ğ±Ğ´Ğ° Ğ´Ğ»Ñ after_write â€” Ğ·Ğ°Ñ…Ğ²Ğ°Ñ‚ sp_sender (copy shared) + self (no dangling)
         auto after_write = [self = shared_from_this(), sp_sender](beast::error_code ec) {
-            if (ec == http::error::end_of_stream) {  // NEW: Client closed — normal, no re-read
+            if (ec == http::error::end_of_stream) {  // NEW: Client closed â€” normal, no re-read
                 std::cout << "Client closed connection gracefully" << std::endl;
                 return;
             }
@@ -73,10 +73,10 @@ private:
             }
             };
 
-        // FIXED: Set cb ÏÎÑËÅ ñîçäàíèÿ sp_sender, íî ÄÎ handleRequest
+        // FIXED: Set cb ĞŸĞĞ¡Ğ›Ğ• ÑĞ¾Ğ·Ğ´Ğ°Ğ½Ğ¸Ñ sp_sender, Ğ½Ğ¾ Ğ”Ğ handleRequest
         sp_sender->after_write_cb_ = after_write;
 
-        // Òåïåğü handleRequest: sender æèâ¸ò via sp, ref ok
+        // Ğ¢ĞµĞ¿ĞµÑ€ÑŒ handleRequest: sender Ğ¶Ğ¸Ğ²Ñ‘Ñ‚ via sp, ref ok
         module_->handleRequest(std::move(req_), sender_ref);
     }
 

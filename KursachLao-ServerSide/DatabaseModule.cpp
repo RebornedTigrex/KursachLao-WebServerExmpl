@@ -1,4 +1,4 @@
-#include "DatabaseModule.h"
+ï»¿#include "DatabaseModule.h"
 
 DatabaseModule::DatabaseModule(boost::asio::io_context& ioc, const std::string& conn_str)
     : BaseModule("DatabaseModule", -1)
@@ -12,7 +12,7 @@ DatabaseModule::~DatabaseModule() {
 
 bool DatabaseModule::onInitialize() {
     std::cout << "[DatabaseModule] Engage asinc DB initialization...\n";
-    asyncInitializeDatabase();  // Òåïåðü èñïîëüçóåò âíåøíèé io_context_
+    asyncInitializeDatabase();  // Ð¢ÐµÐ¿ÐµÑ€ÑŒ Ð¸ÑÐ¿Ð¾Ð»ÑŒÐ·ÑƒÐµÑ‚ Ð²Ð½ÐµÑˆÐ½Ð¸Ð¹ io_context_
     return true;
 }
 
@@ -26,7 +26,7 @@ void DatabaseModule::asyncInitializeDatabase() {
                 throw std::runtime_error("DB connection failded!");
             }
 
-            pqxx::work txn(*conn_);// FIXME: Áóäåò ëè îíî ïîñòîÿííî ïåðåçàïèñûâàòü áàçó äàííûõ? Äëÿ ïðåçåíòàöèè ïîêà ñãîäèòñÿ
+            pqxx::work txn(*conn_);// FIXME: Ð‘ÑƒÐ´ÐµÑ‚ Ð»Ð¸ Ð¾Ð½Ð¾ Ð¿Ð¾ÑÑ‚Ð¾ÑÐ½Ð½Ð¾ Ð¿ÐµÑ€ÐµÐ·Ð°Ð¿Ð¸ÑÑ‹Ð²Ð°Ñ‚ÑŒ Ð±Ð°Ð·Ñƒ Ð´Ð°Ð½Ð½Ñ‹Ñ…? Ð”Ð»Ñ Ð¿Ñ€ÐµÐ·ÐµÐ½Ñ‚Ð°Ñ†Ð¸Ð¸ Ð¿Ð¾ÐºÐ° ÑÐ³Ð¾Ð´Ð¸Ñ‚ÑÑ
             txn.exec(init_schema_sql_);
             txn.commit();
 
@@ -43,7 +43,7 @@ void DatabaseModule::asyncInitializeDatabase() {
 void DatabaseModule::onShutdown() {
     std::cout << "[DatabaseModule] Shutdowning Databese module...\n";
 
-    // Ñîåäèíåíèå àâòîìàòè÷åñêè çàêðîåòñÿ â äåñòðóêòîðå conn_
+    // Ð¡Ð¾ÐµÐ´Ð¸Ð½ÐµÐ½Ð¸Ðµ Ð°Ð²Ñ‚Ð¾Ð¼Ð°Ñ‚Ð¸Ñ‡ÐµÑÐºÐ¸ Ð·Ð°ÐºÑ€Ð¾ÐµÑ‚ÑÑ Ð² Ð´ÐµÑÑ‚Ñ€ÑƒÐºÑ‚Ð¾Ñ€Ðµ conn_
     conn_.reset();
     db_ready_.store(false);
 }

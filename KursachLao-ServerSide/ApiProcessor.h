@@ -1,4 +1,4 @@
-#pragma once
+Ôªø#pragma once
 
 #include <boost/json.hpp>
 #include <pqxx/pqxx>
@@ -10,7 +10,7 @@
 #include <boost/system/error_code.hpp>  
 #include <pqxx/params>                  
 
-#include "macros.h"  // ƒÎˇ http::request, http::response Ë Ú.‰.
+#include "macros.h"  // –î–ª—è http::request, http::response –∏ —Ç.–¥.
 
 class DatabaseModule;
 

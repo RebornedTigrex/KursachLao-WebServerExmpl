@@ -1,4 +1,4 @@
-#include "ApiProcessor.h"
+п»ї#include "ApiProcessor.h"
 #include "DatabaseModule.h"
 
 #include <boost/algorithm/string.hpp>
@@ -278,7 +278,7 @@ void ApiProcessor::handleUpdateEmployee(const http::request<http::string_body>& 
         }
 
         set_clause += "updated_at = CURRENT_TIMESTAMP";
-        update_params.append(id); // последний параметр — id
+        update_params.append(id); // РїРѕСЃР»РµРґРЅРёР№ РїР°СЂР°РјРµС‚СЂ вЂ” id
 
         pqxx::work txn(*conn);
         std::string query = "UPDATE employees SET " + set_clause +

@@ -1,4 +1,4 @@
-#include "RequestHandler.h"
+п»ї#include "RequestHandler.h"
 #include <iostream>
 
 RequestHandler::RequestHandler()
@@ -9,7 +9,7 @@ bool RequestHandler::onInitialize() {
     setupDefaultRoutes();
     std::cout << "RequestHandler initialized with " << routeHandlers_.size() << " routes" << std::endl;
     if (file_cache_) {
-        std::cout << "FileCache linked successfully." << std::endl;  // NEW: Лог для отладки
+        std::cout << "FileCache linked successfully." << std::endl;  // NEW: Р›РѕРі РґР»СЏ РѕС‚Р»Р°РґРєРё
     }
     return true;
 }
@@ -24,13 +24,13 @@ void RequestHandler::addRouteHandler(const std::string& path,
     routeHandlers_[path] = handler;
 }
 
-void RequestHandler::setupDefaultRoutes() { //Придумать какую-нибудь штуку для замены стандартного обработчика
-    // Обработчик для корневого пути
+void RequestHandler::setupDefaultRoutes() { //РџСЂРёРґСѓРјР°С‚СЊ РєР°РєСѓСЋ-РЅРёР±СѓРґСЊ С€С‚СѓРєСѓ РґР»СЏ Р·Р°РјРµРЅС‹ СЃС‚Р°РЅРґР°СЂС‚РЅРѕРіРѕ РѕР±СЂР°Р±РѕС‚С‡РёРєР°
+    // РћР±СЂР°Р±РѕС‚С‡РёРє РґР»СЏ РєРѕСЂРЅРµРІРѕРіРѕ РїСѓС‚Рё
     /*addRouteHandler("/", [](const http::request<http::string_body>& req, http::response<http::string_body>& res) {
         res.set(http::field::content_type, "text/plain");
         res.body() = "Hello from RequestHandler module!";
         });*/
-    // Обработчик для /status
+    // РћР±СЂР°Р±РѕС‚С‡РёРє РґР»СЏ /status
     addRouteHandler("/status", [](const http::request<http::string_body>& req, http::response<http::string_body>& res) {
         res.set(http::field::content_type, "application/json");
         res.result(http::status::ok);

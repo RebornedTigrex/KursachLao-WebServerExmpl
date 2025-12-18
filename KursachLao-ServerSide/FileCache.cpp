@@ -1,25 +1,25 @@
-#include "FileCache.h"
+п»ї#include "FileCache.h"
 #include <iostream>
 #include <fstream>
-#include <algorithm>  // Для std::transform
+#include <algorithm>  // Р”Р»СЏ std::transform
 #include <sstream>
 #include <iomanip>
 #include <ctime>
-#include <unordered_map>  // Для mime_types
-#include <chrono>  // Уже в .h, но для ясности
+#include <unordered_map>  // Р”Р»СЏ mime_types
+#include <chrono>  // РЈР¶Рµ РІ .h, РЅРѕ РґР»СЏ СЏСЃРЅРѕСЃС‚Рё
 
 namespace fs = std::filesystem;
 
-// Вспомогательные функции (как в оригинале)
+// Р’СЃРїРѕРјРѕРіР°С‚РµР»СЊРЅС‹Рµ С„СѓРЅРєС†РёРё (РєР°Рє РІ РѕСЂРёРіРёРЅР°Р»Рµ)
 namespace {
-    // Конвертация времени файловой системы в системное время
+    // РљРѕРЅРІРµСЂС‚Р°С†РёСЏ РІСЂРµРјРµРЅРё С„Р°Р№Р»РѕРІРѕР№ СЃРёСЃС‚РµРјС‹ РІ СЃРёСЃС‚РµРјРЅРѕРµ РІСЂРµРјСЏ
     std::chrono::system_clock::time_point file_time_to_system_time(const fs::file_time_type& ftime) {
         auto sctp = std::chrono::time_point_cast<std::chrono::system_clock::duration>(
             ftime - fs::file_time_type::clock::now() + std::chrono::system_clock::now());
         return sctp;
     }
 
-    // Функция для безопасного чтения файла
+    // Р¤СѓРЅРєС†РёСЏ РґР»СЏ Р±РµР·РѕРїР°СЃРЅРѕРіРѕ С‡С‚РµРЅРёСЏ С„Р°Р№Р»Р°
     std::optional<std::string> read_file_contents(const fs::path& file_path) {
         try {
             if (!fs::exists(file_path) || !fs::is_regular_file(file_path)) {
@@ -31,7 +31,7 @@ namespace {
             }
             std::streamsize size = file.tellg();
             if (size <= 0) {
-                return std::string(); // Пустой файл
+                return std::string(); // РџСѓСЃС‚РѕР№ С„Р°Р№Р»
             }
             file.seekg(0, std::ios::beg);
             std::string content;
@@ -47,18 +47,18 @@ namespace {
     }
 }
 
-// Конструктор (как оригинал, с вызовом rebuild_file_map)
+// РљРѕРЅСЃС‚СЂСѓРєС‚РѕСЂ (РєР°Рє РѕСЂРёРіРёРЅР°Р», СЃ РІС‹Р·РѕРІРѕРј rebuild_file_map)
 FileCache::FileCache(const std::string& base_dir, bool enable_cache, size_t max_cache)
     : BaseModule("File Cache Module"), cache_enabled_(enable_cache), max_cache_size_(max_cache), total_cache_size_(0) {
     base_directory_ = fs::absolute(base_dir);
     if (!fs::exists(base_directory_) || !fs::is_directory(base_directory_)) {
         throw std::runtime_error("Base directory does not exist or is not accessible: " + base_dir);
     }
-    rebuild_file_map();  // Инициализируем карту маршрутов
+    rebuild_file_map();  // РРЅРёС†РёР°Р»РёР·РёСЂСѓРµРј РєР°СЂС‚Сѓ РјР°СЂС€СЂСѓС‚РѕРІ
     std::cout << "FileCache constructed for " << base_directory_ << std::endl;
 }
 
-// onInitialize (модульный: лог + проверка)
+// onInitialize (РјРѕРґСѓР»СЊРЅС‹Р№: Р»РѕРі + РїСЂРѕРІРµСЂРєР°)
 bool FileCache::onInitialize() {
     if (route_to_path_.empty()) {
         std::cerr << "Warning: No routes mapped in FileCache for " << base_directory_ << std::endl;
@@ -68,13 +68,13 @@ bool FileCache::onInitialize() {
     return true;
 }
 
-// onShutdown (модульный: clear + лог)
+// onShutdown (РјРѕРґСѓР»СЊРЅС‹Р№: clear + Р»РѕРі)
 void FileCache::onShutdown() {
     clear_cache();
     std::cout << "FileCache onShutdown: Cache cleared." << std::endl;
 }
 
-// Получение MIME типа по расширению файла (оригинал)
+// РџРѕР»СѓС‡РµРЅРёРµ MIME С‚РёРїР° РїРѕ СЂР°СЃС€РёСЂРµРЅРёСЋ С„Р°Р№Р»Р° (РѕСЂРёРіРёРЅР°Р»)
 std::string FileCache::get_mime_type(const std::string& extension) const {
     static const std::unordered_map<std::string, std::string> mime_types = {
         {".html", "text/html; charset=utf-8"},
@@ -123,14 +123,14 @@ std::string FileCache::get_mime_type(const std::string& extension) const {
         {".ppt", "application/vnd.ms-powerpoint"},
         {".pptx", "application/vnd.openxmlformats-officedocument.presentationml.presentation"}
     };
-    // Приводим расширение к нижнему регистру
+    // РџСЂРёРІРѕРґРёРј СЂР°СЃС€РёСЂРµРЅРёРµ Рє РЅРёР¶РЅРµРјСѓ СЂРµРіРёСЃС‚СЂСѓ
     std::string ext_lower = extension;
     std::transform(ext_lower.begin(), ext_lower.end(), ext_lower.begin(), ::tolower);
     auto it = mime_types.find(ext_lower);
     if (it != mime_types.end()) {
         return it->second;
     }
-    // Для неизвестных расширений пытаемся определить по категории
+    // Р”Р»СЏ РЅРµРёР·РІРµСЃС‚РЅС‹С… СЂР°СЃС€РёСЂРµРЅРёР№ РїС‹С‚Р°РµРјСЃСЏ РѕРїСЂРµРґРµР»РёС‚СЊ РїРѕ РєР°С‚РµРіРѕСЂРёРё
     if (ext_lower == ".c" || ext_lower == ".cpp" || ext_lower == ".h" || ext_lower == ".hpp" ||
         ext_lower == ".py" || ext_lower == ".java" || ext_lower == ".cs" || ext_lower == ".php" ||
         ext_lower == ".rb" || ext_lower == ".go" || ext_lower == ".rs" || ext_lower == ".swift") {
@@ -139,42 +139,42 @@ std::string FileCache::get_mime_type(const std::string& extension) const {
     return "application/octet-stream";
 }
 
-// Нормализация маршрута (оригинал)
+// РќРѕСЂРјР°Р»РёР·Р°С†РёСЏ РјР°СЂС€СЂСѓС‚Р° (РѕСЂРёРіРёРЅР°Р»)
 std::string FileCache::normalize_route(const fs::path& file_path) const {
-    // Получаем относительный путь от базовой директории
+    // РџРѕР»СѓС‡Р°РµРј РѕС‚РЅРѕСЃРёС‚РµР»СЊРЅС‹Р№ РїСѓС‚СЊ РѕС‚ Р±Р°Р·РѕРІРѕР№ РґРёСЂРµРєС‚РѕСЂРёРё
     fs::path relative_path;
     try {
         relative_path = fs::relative(file_path, base_directory_);
     }
     catch (const fs::filesystem_error&) {
-        // Если не можем получить относительный путь, используем полный
+        // Р•СЃР»Рё РЅРµ РјРѕР¶РµРј РїРѕР»СѓС‡РёС‚СЊ РѕС‚РЅРѕСЃРёС‚РµР»СЊРЅС‹Р№ РїСѓС‚СЊ, РёСЃРїРѕР»СЊР·СѓРµРј РїРѕР»РЅС‹Р№
         return "/invalid_path";
     }
-    // Создаем маршрут без расширения файла
+    // РЎРѕР·РґР°РµРј РјР°СЂС€СЂСѓС‚ Р±РµР· СЂР°СЃС€РёСЂРµРЅРёСЏ С„Р°Р№Р»Р°
     std::string route = "/";
-    // Добавляем родительские директории
+    // Р”РѕР±Р°РІР»СЏРµРј СЂРѕРґРёС‚РµР»СЊСЃРєРёРµ РґРёСЂРµРєС‚РѕСЂРёРё
     if (relative_path.has_parent_path() && relative_path.parent_path() != ".") {
         route += relative_path.parent_path().string() + "/";
     }
-    // Добавляем имя файла без расширения
+    // Р”РѕР±Р°РІР»СЏРµРј РёРјСЏ С„Р°Р№Р»Р° Р±РµР· СЂР°СЃС€РёСЂРµРЅРёСЏ
     std::string stem = relative_path.stem().string();
     if (!stem.empty()) {
         route += stem;
     }
-    // Специальная обработка для index файлов
+    // РЎРїРµС†РёР°Р»СЊРЅР°СЏ РѕР±СЂР°Р±РѕС‚РєР° РґР»СЏ index С„Р°Р№Р»РѕРІ
     std::string filename_lower = stem;
     std::transform(filename_lower.begin(), filename_lower.end(), filename_lower.begin(), ::tolower);
     if (filename_lower == "index") {
-        // Если это index в корне - возвращаем "/"
+        // Р•СЃР»Рё СЌС‚Рѕ index РІ РєРѕСЂРЅРµ - РІРѕР·РІСЂР°С‰Р°РµРј "/"
         if (!relative_path.has_parent_path() || relative_path.parent_path() == ".") {
             return "/";
         }
-        // Если index в поддиректории - возвращаем путь до директории
+        // Р•СЃР»Рё index РІ РїРѕРґРґРёСЂРµРєС‚РѕСЂРёРё - РІРѕР·РІСЂР°С‰Р°РµРј РїСѓС‚СЊ РґРѕ РґРёСЂРµРєС‚РѕСЂРёРё
         return "/" + relative_path.parent_path().string() + "/";
     }
-    // Заменяем обратные слеши на прямые (для Windows)
+    // Р—Р°РјРµРЅСЏРµРј РѕР±СЂР°С‚РЅС‹Рµ СЃР»РµС€Рё РЅР° РїСЂСЏРјС‹Рµ (РґР»СЏ Windows)
     std::replace(route.begin(), route.end(), '\\', '/');
-    // Удаляем двойные слеши
+    // РЈРґР°Р»СЏРµРј РґРІРѕР№РЅС‹Рµ СЃР»РµС€Рё
     size_t pos;
     while ((pos = route.find("//")) != std::string::npos) {
         route.replace(pos, 2, "/");
@@ -182,7 +182,7 @@ std::string FileCache::normalize_route(const fs::path& file_path) const {
     return route;
 }
 
-// Сканирование директории (оригинал)
+// РЎРєР°РЅРёСЂРѕРІР°РЅРёРµ РґРёСЂРµРєС‚РѕСЂРёРё (РѕСЂРёРіРёРЅР°Р»)
 void FileCache::scan_directory(const fs::path& directory) {
     try {
         for (const auto& entry : fs::recursive_directory_iterator(directory)) {
@@ -190,7 +190,7 @@ void FileCache::scan_directory(const fs::path& directory) {
                 std::string route = normalize_route(entry.path());
                 if (route != "/invalid_path") {
                     route_to_path_[route] = entry.path().string();
-                    // Также добавляем альтернативный вариант без конечного слэша
+                    // РўР°РєР¶Рµ РґРѕР±Р°РІР»СЏРµРј Р°Р»СЊС‚РµСЂРЅР°С‚РёРІРЅС‹Р№ РІР°СЂРёР°РЅС‚ Р±РµР· РєРѕРЅРµС‡РЅРѕРіРѕ СЃР»СЌС€Р°
                     if (route.back() == '/' && route != "/") {
                         std::string alt_route = route.substr(0, route.length() - 1);
                         route_to_path_[alt_route] = entry.path().string();
@@ -204,7 +204,7 @@ void FileCache::scan_directory(const fs::path& directory) {
     }
 }
 
-// Загрузка файла с диска (оригинал)
+// Р—Р°РіСЂСѓР·РєР° С„Р°Р№Р»Р° СЃ РґРёСЃРєР° (РѕСЂРёРіРёРЅР°Р»)
 std::optional<FileCache::CachedFile> FileCache::load_file_from_disk(const fs::path& file_path) const {
     auto content_opt = read_file_contents(file_path);
     if (!content_opt) {
@@ -216,7 +216,7 @@ std::optional<FileCache::CachedFile> FileCache::load_file_from_disk(const fs::pa
         cached_file.size = cached_file.content.size();
         cached_file.file_path = file_path;
         cached_file.mime_type = get_mime_type(file_path.extension().string());
-        // Время последнего изменения файла
+        // Р’СЂРµРјСЏ РїРѕСЃР»РµРґРЅРµРіРѕ РёР·РјРµРЅРµРЅРёСЏ С„Р°Р№Р»Р°
         auto ftime = fs::last_write_time(file_path);
         cached_file.last_modified = file_time_to_system_time(ftime);
         cached_file.last_accessed = std::chrono::system_clock::now();
@@ -228,26 +228,26 @@ std::optional<FileCache::CachedFile> FileCache::load_file_from_disk(const fs::pa
     }
 }
 
-// Вытеснение файлов при переполнении кэша (оригинал)
+// Р’С‹С‚РµСЃРЅРµРЅРёРµ С„Р°Р№Р»РѕРІ РїСЂРё РїРµСЂРµРїРѕР»РЅРµРЅРёРё РєСЌС€Р° (РѕСЂРёРіРёРЅР°Р»)
 void FileCache::evict_if_needed() {
     if (file_cache_.size() <= max_cache_size_) {
         return;
     }
-    // Находим файл с самым старым временем доступа
+    // РќР°С…РѕРґРёРј С„Р°Р№Р» СЃ СЃР°РјС‹Рј СЃС‚Р°СЂС‹Рј РІСЂРµРјРµРЅРµРј РґРѕСЃС‚СѓРїР°
     auto oldest = file_cache_.begin();
     for (auto it = file_cache_.begin(); it != file_cache_.end(); ++it) {
         if (it->second.last_accessed < oldest->second.last_accessed) {
             oldest = it;
         }
     }
-    // Удаляем его
+    // РЈРґР°Р»СЏРµРј РµРіРѕ
     if (oldest != file_cache_.end()) {
         total_cache_size_ -= oldest->second.size;
         file_cache_.erase(oldest);
     }
 }
 
-// Перестроение карты файлов (оригинал + лог)
+// РџРµСЂРµСЃС‚СЂРѕРµРЅРёРµ РєР°СЂС‚С‹ С„Р°Р№Р»РѕРІ (РѕСЂРёРіРёРЅР°Р» + Р»РѕРі)
 void FileCache::rebuild_file_map() {
     std::unique_lock lock(cache_mutex_);
     route_to_path_.clear();
@@ -256,40 +256,40 @@ void FileCache::rebuild_file_map() {
         << " in directory: " << base_directory_ << std::endl;
 }
 
-// Получение файла по маршруту (оригинал — это ключевой метод для RequestHandler!)
+// РџРѕР»СѓС‡РµРЅРёРµ С„Р°Р№Р»Р° РїРѕ РјР°СЂС€СЂСѓС‚Сѓ (РѕСЂРёРіРёРЅР°Р» вЂ” СЌС‚Рѕ РєР»СЋС‡РµРІРѕР№ РјРµС‚РѕРґ РґР»СЏ RequestHandler!)
 std::optional<FileCache::CachedFile> FileCache::get_file(const std::string& route) {
     std::unique_lock lock(cache_mutex_);
-    // Проверяем, существует ли такой маршрут
+    // РџСЂРѕРІРµСЂСЏРµРј, СЃСѓС‰РµСЃС‚РІСѓРµС‚ Р»Рё С‚Р°РєРѕР№ РјР°СЂС€СЂСѓС‚
     auto path_it = route_to_path_.find(route);
     if (path_it == route_to_path_.end()) {
         return std::nullopt;
     }
     fs::path file_path = path_it->second;
-    // Если кэш отключен, загружаем файл с диска каждый раз
+    // Р•СЃР»Рё РєСЌС€ РѕС‚РєР»СЋС‡РµРЅ, Р·Р°РіСЂСѓР¶Р°РµРј С„Р°Р№Р» СЃ РґРёСЃРєР° РєР°Р¶РґС‹Р№ СЂР°Р·
     if (!cache_enabled_) {
         return load_file_from_disk(file_path);
     }
-    // Проверяем, есть ли файл в кэше
+    // РџСЂРѕРІРµСЂСЏРµРј, РµСЃС‚СЊ Р»Рё С„Р°Р№Р» РІ РєСЌС€Рµ
     auto cache_it = file_cache_.find(route);
     if (cache_it != file_cache_.end()) {
-        // Обновляем время доступа
+        // РћР±РЅРѕРІР»СЏРµРј РІСЂРµРјСЏ РґРѕСЃС‚СѓРїР°
         cache_it->second.last_accessed = std::chrono::system_clock::now();
         return cache_it->second;
     }
-    // Загружаем файл с диска
+    // Р—Р°РіСЂСѓР¶Р°РµРј С„Р°Р№Р» СЃ РґРёСЃРєР°
     auto cached_file = load_file_from_disk(file_path);
     if (!cached_file) {
         return std::nullopt;
     }
-    // Проверяем, не переполнен ли кэш
+    // РџСЂРѕРІРµСЂСЏРµРј, РЅРµ РїРµСЂРµРїРѕР»РЅРµРЅ Р»Рё РєСЌС€
     evict_if_needed();
-    // Добавляем в кэш
+    // Р”РѕР±Р°РІР»СЏРµРј РІ РєСЌС€
     file_cache_[route] = *cached_file;
     total_cache_size_ += cached_file->size;
     return cached_file;
 }
 
-// Получение файла по прямому пути (оригинал)
+// РџРѕР»СѓС‡РµРЅРёРµ С„Р°Р№Р»Р° РїРѕ РїСЂСЏРјРѕРјСѓ РїСѓС‚Рё (РѕСЂРёРіРёРЅР°Р»)
 std::optional<FileCache::CachedFile> FileCache::get_file_by_path(const std::string& file_path) {
     fs::path path(file_path);
     if (!path.is_absolute()) {
@@ -298,7 +298,7 @@ std::optional<FileCache::CachedFile> FileCache::get_file_by_path(const std::stri
     if (!fs::exists(path) || !fs::is_regular_file(path)) {
         return std::nullopt;
     }
-    // Создаем временный маршрут для кэширования
+    // РЎРѕР·РґР°РµРј РІСЂРµРјРµРЅРЅС‹Р№ РјР°СЂС€СЂСѓС‚ РґР»СЏ РєСЌС€РёСЂРѕРІР°РЅРёСЏ
     std::string temp_route = "/file" + std::to_string(std::hash<std::string>{}(path.string()));
     std::unique_lock lock(cache_mutex_);
     if (cache_enabled_) {
@@ -320,7 +320,7 @@ std::optional<FileCache::CachedFile> FileCache::get_file_by_path(const std::stri
     return cached_file;
 }
 
-// Принудительное кэширование файла (оригинал)
+// РџСЂРёРЅСѓРґРёС‚РµР»СЊРЅРѕРµ РєСЌС€РёСЂРѕРІР°РЅРёРµ С„Р°Р№Р»Р° (РѕСЂРёРіРёРЅР°Р»)
 bool FileCache::preload_file(const std::string& route) {
     std::unique_lock lock(cache_mutex_);
     auto path_it = route_to_path_.find(route);
@@ -328,13 +328,13 @@ bool FileCache::preload_file(const std::string& route) {
         return false;
     }
     fs::path file_path = path_it->second;
-    // Если файл уже в кэше, просто обновляем время доступа
+    // Р•СЃР»Рё С„Р°Р№Р» СѓР¶Рµ РІ РєСЌС€Рµ, РїСЂРѕСЃС‚Рѕ РѕР±РЅРѕРІР»СЏРµРј РІСЂРµРјСЏ РґРѕСЃС‚СѓРїР°
     auto cache_it = file_cache_.find(route);
     if (cache_it != file_cache_.end()) {
         cache_it->second.last_accessed = std::chrono::system_clock::now();
         return true;
     }
-    // Загружаем файл
+    // Р—Р°РіСЂСѓР¶Р°РµРј С„Р°Р№Р»
     auto cached_file = load_file_from_disk(file_path);
     if (!cached_file) {
         return false;
@@ -347,7 +347,7 @@ bool FileCache::preload_file(const std::string& route) {
     return true;
 }
 
-// Удаление файла из кэша (оригинал)
+// РЈРґР°Р»РµРЅРёРµ С„Р°Р№Р»Р° РёР· РєСЌС€Р° (РѕСЂРёРіРёРЅР°Р»)
 bool FileCache::evict_from_cache(const std::string& route) {
     std::unique_lock lock(cache_mutex_);
     auto it = file_cache_.find(route);
@@ -359,14 +359,14 @@ bool FileCache::evict_from_cache(const std::string& route) {
     return false;
 }
 
-// Очистка всего кэша (оригинал — фиксит ошибку!)
+// РћС‡РёСЃС‚РєР° РІСЃРµРіРѕ РєСЌС€Р° (РѕСЂРёРіРёРЅР°Р» вЂ” С„РёРєСЃРёС‚ РѕС€РёР±РєСѓ!)
 void FileCache::clear_cache() {
     std::unique_lock lock(cache_mutex_);
     file_cache_.clear();
     total_cache_size_ = 0;
 }
 
-// Получение списка всех маршрутов (оригинал)
+// РџРѕР»СѓС‡РµРЅРёРµ СЃРїРёСЃРєР° РІСЃРµС… РјР°СЂС€СЂСѓС‚РѕРІ (РѕСЂРёРіРёРЅР°Р»)
 std::vector<std::string> FileCache::get_all_routes() const {
     std::shared_lock lock(cache_mutex_);
     std::vector<std::string> routes;
@@ -377,7 +377,7 @@ std::vector<std::string> FileCache::get_all_routes() const {
     return routes;
 }
 
-// Поиск маршрутов по шаблону (оригинал)
+// РџРѕРёСЃРє РјР°СЂС€СЂСѓС‚РѕРІ РїРѕ С€Р°Р±Р»РѕРЅСѓ (РѕСЂРёРіРёРЅР°Р»)
 std::vector<std::string> FileCache::find_routes(const std::string& pattern) const {
     std::shared_lock lock(cache_mutex_);
     std::vector<std::string> matches;
@@ -389,13 +389,13 @@ std::vector<std::string> FileCache::find_routes(const std::string& pattern) cons
     return matches;
 }
 
-// Проверка существования маршрута (оригинал)
+// РџСЂРѕРІРµСЂРєР° СЃСѓС‰РµСЃС‚РІРѕРІР°РЅРёСЏ РјР°СЂС€СЂСѓС‚Р° (РѕСЂРёРіРёРЅР°Р»)
 bool FileCache::route_exists(const std::string& route) const {
     std::shared_lock lock(cache_mutex_);
     return route_to_path_.find(route) != route_to_path_.end();
 }
 
-// Получение информации о кэше (оригинал)
+// РџРѕР»СѓС‡РµРЅРёРµ РёРЅС„РѕСЂРјР°С†РёРё Рѕ РєСЌС€Рµ (РѕСЂРёРіРёРЅР°Р»)
 FileCache::CacheInfo FileCache::get_cache_info() const {
     std::shared_lock lock(cache_mutex_);
     CacheInfo info;
@@ -407,7 +407,7 @@ FileCache::CacheInfo FileCache::get_cache_info() const {
     return info;
 }
 
-// Получение детальной статистики (оригинал)
+// РџРѕР»СѓС‡РµРЅРёРµ РґРµС‚Р°Р»СЊРЅРѕР№ СЃС‚Р°С‚РёСЃС‚РёРєРё (РѕСЂРёРіРёРЅР°Р»)
 FileCache::CacheStats FileCache::get_detailed_stats() const {
     std::shared_lock lock(cache_mutex_);
     CacheStats stats;
@@ -429,7 +429,7 @@ FileCache::CacheStats FileCache::get_detailed_stats() const {
     return stats;
 }
 
-// Обновление файла в кэше (оригинал)
+// РћР±РЅРѕРІР»РµРЅРёРµ С„Р°Р№Р»Р° РІ РєСЌС€Рµ (РѕСЂРёРіРёРЅР°Р»)
 bool FileCache::refresh_file(const std::string& route) {
     std::unique_lock lock(cache_mutex_);
     auto path_it = route_to_path_.find(route);
@@ -438,20 +438,20 @@ bool FileCache::refresh_file(const std::string& route) {
     }
     fs::path file_path = path_it->second;
     try {
-        // Проверяем, изменился ли файл
+        // РџСЂРѕРІРµСЂСЏРµРј, РёР·РјРµРЅРёР»СЃСЏ Р»Рё С„Р°Р№Р»
         auto ftime = fs::last_write_time(file_path);
         auto last_write_time = file_time_to_system_time(ftime);
         auto cache_it = file_cache_.find(route);
         if (cache_it != file_cache_.end()) {
-            // Если файл не изменился, просто обновляем время доступа
+            // Р•СЃР»Рё С„Р°Р№Р» РЅРµ РёР·РјРµРЅРёР»СЃСЏ, РїСЂРѕСЃС‚Рѕ РѕР±РЅРѕРІР»СЏРµРј РІСЂРµРјСЏ РґРѕСЃС‚СѓРїР°
             if (last_write_time <= cache_it->second.last_modified) {
                 cache_it->second.last_accessed = std::chrono::system_clock::now();
                 return true;
             }
-            // Удаляем старую версию из кэша
+            // РЈРґР°Р»СЏРµРј СЃС‚Р°СЂСѓСЋ РІРµСЂСЃРёСЋ РёР· РєСЌС€Р°
             total_cache_size_ -= cache_it->second.size;
         }
-        // Загружаем новую версию
+        // Р—Р°РіСЂСѓР¶Р°РµРј РЅРѕРІСѓСЋ РІРµСЂСЃРёСЋ
         auto cached_file = load_file_from_disk(file_path);
         if (!cached_file) {
             if (cache_it != file_cache_.end()) {
@@ -469,7 +469,7 @@ bool FileCache::refresh_file(const std::string& route) {
     }
 }
 
-// Получение MIME типа для маршрута (оригинал)
+// РџРѕР»СѓС‡РµРЅРёРµ MIME С‚РёРїР° РґР»СЏ РјР°СЂС€СЂСѓС‚Р° (РѕСЂРёРіРёРЅР°Р»)
 std::optional<std::string> FileCache::get_mime_type_for_route(const std::string& route) const {
     std::shared_lock lock(cache_mutex_);
     auto path_it = route_to_path_.find(route);
@@ -480,11 +480,11 @@ std::optional<std::string> FileCache::get_mime_type_for_route(const std::string&
     return get_mime_type(file_path.extension().string());
 }
 
-// Установка максимального размера кэша (оригинал)
+// РЈСЃС‚Р°РЅРѕРІРєР° РјР°РєСЃРёРјР°Р»СЊРЅРѕРіРѕ СЂР°Р·РјРµСЂР° РєСЌС€Р° (РѕСЂРёРіРёРЅР°Р»)
 void FileCache::set_max_cache_size(size_t max_size) {
     std::unique_lock lock(cache_mutex_);
     max_cache_size_ = max_size;
-    // Если новый размер меньше текущего, вытесняем лишние файлы
+    // Р•СЃР»Рё РЅРѕРІС‹Р№ СЂР°Р·РјРµСЂ РјРµРЅСЊС€Рµ С‚РµРєСѓС‰РµРіРѕ, РІС‹С‚РµСЃРЅСЏРµРј Р»РёС€РЅРёРµ С„Р°Р№Р»С‹
     while (file_cache_.size() > max_cache_size_) {
         evict_if_needed();
     }

@@ -1,4 +1,4 @@
-#include "LambdaSenders.h"
+п»ї#include "LambdaSenders.h"
 #include "RequestHandler.h"
 #include "ModuleRegistry.h"
 #include "FileCache.h"
@@ -34,8 +34,8 @@ void printConnectionInfo(tcp::socket& socket) {
 }
 
 void CreateAPIHandlers(RequestHandler* module, ApiProcessor* apiProcessor) {
-    //return; // TODO: Добавить Api обработчики
-    // Регистрация API-роутов через лямбды, которые вызывают методы ApiProcessor
+    //return; // TODO: Р”РѕР±Р°РІРёС‚СЊ Api РѕР±СЂР°Р±РѕС‚С‡РёРєРё
+    // Р РµРіРёСЃС‚СЂР°С†РёСЏ API-СЂРѕСѓС‚РѕРІ С‡РµСЂРµР· Р»СЏРјР±РґС‹, РєРѕС‚РѕСЂС‹Рµ РІС‹Р·С‹РІР°СЋС‚ РјРµС‚РѕРґС‹ ApiProcessor
     module->addRouteHandler("/api/data", [apiProcessor](const sRequest& req, sResponce& res) {
         apiProcessor->handleGetAllData(req, res);
         });
@@ -45,7 +45,7 @@ void CreateAPIHandlers(RequestHandler* module, ApiProcessor* apiProcessor) {
             apiProcessor->handleAddEmployee(req, res);
         }
         else if (req.method() == http::verb::get) {
-            apiProcessor->handleGetAllData(req, res); // Можно временно использовать как список
+            apiProcessor->handleGetAllData(req, res); // РњРѕР¶РЅРѕ РІСЂРµРјРµРЅРЅРѕ РёСЃРїРѕР»СЊР·РѕРІР°С‚СЊ РєР°Рє СЃРїРёСЃРѕРє
         }
         else {
             res.result(http::status::method_not_allowed);
@@ -107,12 +107,12 @@ void CreateNewHandlers(RequestHandler* module, std::string staticFolder) {
 }
 
 int main(int argc, char* argv[]) {
-    // Объявление переменных для параметров
+    // РћР±СЉСЏРІР»РµРЅРёРµ РїРµСЂРµРјРµРЅРЅС‹С… РґР»СЏ РїР°СЂР°РјРµС‚СЂРѕРІ
     std::string address;
     int port;
     std::string directory;
 
-    // Настройка парсера аргументов
+    // РќР°СЃС‚СЂРѕР№РєР° РїР°СЂСЃРµСЂР° Р°СЂРіСѓРјРµРЅС‚РѕРІ
     po::options_description desc("Available options");
     desc.add_options()
         ("help,h", "Show help")
@@ -138,7 +138,7 @@ int main(int argc, char* argv[]) {
             return EXIT_FAILURE;
         }
 
-        // Проверка существования директории
+        // РџСЂРѕРІРµСЂРєР° СЃСѓС‰РµСЃС‚РІРѕРІР°РЅРёСЏ РґРёСЂРµРєС‚РѕСЂРёРё
         if (!fs::exists(directory)) {
             std::cerr << "Warning: directory '" << directory << "' does not exist\n";
         }
@@ -153,7 +153,7 @@ int main(int argc, char* argv[]) {
     std::cout << "ACP: " << GetACP() << std::endl;
     std::cout << "OEMCP: " << GetOEMCP() << std::endl;
 
-    // Вывод конфигурации
+    // Р’С‹РІРѕРґ РєРѕРЅС„РёРіСѓСЂР°С†РёРё
     std::cout << "Server configuration:\n"
         << " Address: " << address << "\n"
         << " Port: " << port << "\n"
@@ -161,14 +161,14 @@ int main(int argc, char* argv[]) {
 //////////////////////////////////////////////////////////
     net::io_context ioc;
 
-    const char* databaseStr = "dbname=postgres user=postgres password=postgres host=127.0.0.1 port=54855";//TODO: Перенести хардкод в параметры
+    const char* databaseStr = "dbname=postgres user=postgres password=postgres host=127.0.0.1 port=54855";//TODO: РџРµСЂРµРЅРµСЃС‚Рё С…Р°СЂРґРєРѕРґ РІ РїР°СЂР°РјРµС‚СЂС‹
 
     ModuleRegistry registry;
     auto* cacheModule = registry.registerModule<FileCache>(directory.c_str(), true, 100);
     auto* requestModule = registry.registerModule<RequestHandler>();
     auto* dbModule = registry.registerModule<DatabaseModule>(ioc, databaseStr);
 
-    ApiProcessor apiProcessor(dbModule); //TODO: Не совсем подходит моей идеологии управления жизнью через реестр модулей. Однако это по сути обёртка
+    ApiProcessor apiProcessor(dbModule); //TODO: РќРµ СЃРѕРІСЃРµРј РїРѕРґС…РѕРґРёС‚ РјРѕРµР№ РёРґРµРѕР»РѕРіРёРё СѓРїСЂР°РІР»РµРЅРёСЏ Р¶РёР·РЅСЊСЋ С‡РµСЂРµР· СЂРµРµСЃС‚СЂ РјРѕРґСѓР»РµР№. РћРґРЅР°РєРѕ СЌС‚Рѕ РїРѕ СЃСѓС‚Рё РѕР±С‘СЂС‚РєР°
 
     CreateAPIHandlers(requestModule, &apiProcessor);
 
@@ -187,7 +187,7 @@ int main(int argc, char* argv[]) {
         tcp::acceptor acceptor{ ioc, {net_address, net_port} };
         std::cout << "Server started on http://" << address << ":" << port << std::endl;
 
-        // UPDATED: Do_accept с std::function для safe recursive (avoid self-ref UB)
+        // UPDATED: Do_accept СЃ std::function РґР»СЏ safe recursive (avoid self-ref UB)
         std::function<void()> do_accept_func = [&acceptor, &ioc, requestModule, &do_accept_func]() {  // NEW: Explicit function, self-capture by ref
             auto socket = std::make_shared<tcp::socket>(ioc);
             acceptor.async_accept(*socket,
@@ -199,12 +199,12 @@ int main(int argc, char* argv[]) {
                     else {
                         std::cerr << "Accept error: " << ec.message() << std::endl;
                     }
-                    do_accept_func();  // Рекурсия via function call (safe)
+                    do_accept_func();  // Р РµРєСѓСЂСЃРёСЏ via function call (safe)
                 });
             };
 
         do_accept_func();
-        ioc.run();  // Блокирует, обрабатывает все async
+        ioc.run();  // Р‘Р»РѕРєРёСЂСѓРµС‚, РѕР±СЂР°Р±Р°С‚С‹РІР°РµС‚ РІСЃРµ async
     }
     catch (const std::exception& e) {
         std::cerr << "Error: " << e.what() << std::endl;

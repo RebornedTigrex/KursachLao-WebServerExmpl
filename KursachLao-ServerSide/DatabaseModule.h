@@ -1,4 +1,4 @@
-#pragma once
+п»ї#pragma once
 
 #include "BaseModule.h"
 #include <boost/asio.hpp>
@@ -19,7 +19,7 @@ private:
     std::unique_ptr<pqxx::connection> conn_;
     std::atomic<bool> db_ready_{ false };
 
-    // SQL-скрипт создания схемы
+    // SQL-СЃРєСЂРёРїС‚ СЃРѕР·РґР°РЅРёСЏ СЃС…РµРјС‹
     const std::string init_schema_sql_ = R"(
         CREATE TABLE IF NOT EXISTS employees (
             id SERIAL PRIMARY KEY,
@@ -58,7 +58,7 @@ private:
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
 
-        -- Триггеры для автоматического обновления счётчиков
+        -- РўСЂРёРіРіРµСЂС‹ РґР»СЏ Р°РІС‚РѕРјР°С‚РёС‡РµСЃРєРѕРіРѕ РѕР±РЅРѕРІР»РµРЅРёСЏ СЃС‡С‘С‚С‡РёРєРѕРІ
         CREATE OR REPLACE FUNCTION update_employee_penalties() RETURNS TRIGGER AS $$
         BEGIN
             UPDATE employees
@@ -93,7 +93,7 @@ private:
             FOR EACH ROW
             EXECUTE FUNCTION update_employee_bonuses();
 
-        -- Автоматическое обновление updated_at в work_hours
+        -- РђРІС‚РѕРјР°С‚РёС‡РµСЃРєРѕРµ РѕР±РЅРѕРІР»РµРЅРёРµ updated_at РІ work_hours
         CREATE OR REPLACE FUNCTION update_hours_timestamp() RETURNS TRIGGER AS $$
         BEGIN
             NEW.updated_at = CURRENT_TIMESTAMP;
@@ -109,7 +109,7 @@ private:
     )";
 
 public:
-    // Новый конструктор — принимает io_context по ссылке
+    // РќРѕРІС‹Р№ РєРѕРЅСЃС‚СЂСѓРєС‚РѕСЂ вЂ” РїСЂРёРЅРёРјР°РµС‚ io_context РїРѕ СЃСЃС‹Р»РєРµ
     explicit DatabaseModule(
         boost::asio::io_context& ioc,
         const std::string& conn_str = "dbname=hr_db user=postgres password=postgres host=127.0.0.1 port=5432"
@@ -132,6 +132,6 @@ protected:
 
 private:
 
-    // Асинхронная инициализация базы
+    // РђСЃРёРЅС…СЂРѕРЅРЅР°СЏ РёРЅРёС†РёР°Р»РёР·Р°С†РёСЏ Р±Р°Р·С‹
     void asyncInitializeDatabase();
 };

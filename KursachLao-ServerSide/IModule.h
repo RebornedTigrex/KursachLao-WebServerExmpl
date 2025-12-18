@@ -1,4 +1,4 @@
-#pragma once
+п»ї#pragma once
 
 #include <string>
 
@@ -10,11 +10,11 @@ public:
     virtual std::string getName() const = 0;
     //virtual std::string getVersion() const = 0;
 
-    // Жизненный цикл
+    // Р–РёР·РЅРµРЅРЅС‹Р№ С†РёРєР»
     virtual bool initialize() = 0;
     virtual void shutdown() = 0;
 
-    // Статус
+    // РЎС‚Р°С‚СѓСЃ
     virtual bool isEnabled() const = 0;
     virtual void setEnabled(bool enabled) = 0;
 };

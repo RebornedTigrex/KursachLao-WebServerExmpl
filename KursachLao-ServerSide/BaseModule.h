@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "IModule.h"
 #include <atomic>
 #include <string>

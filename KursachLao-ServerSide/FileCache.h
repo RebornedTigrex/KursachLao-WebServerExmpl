@@ -1,5 +1,5 @@
-#pragma once
-#include "BaseModule.h"  // Наследование от BaseModule
+п»ї#pragma once
+#include "BaseModule.h"  // РќР°СЃР»РµРґРѕРІР°РЅРёРµ РѕС‚ BaseModule
 #include <filesystem>
 #include <string>
 #include <unordered_map>
@@ -12,7 +12,7 @@
 
 namespace fs = std::filesystem;
 
-class FileCache : public BaseModule {  // UPDATED: Наследник BaseModule
+class FileCache : public BaseModule {  // UPDATED: РќР°СЃР»РµРґРЅРёРє BaseModule
 private:
     struct CachedFile {
         std::string content;
@@ -31,7 +31,7 @@ private:
     size_t max_cache_size_;
     size_t total_cache_size_;
 
-    // Вспомогательные методы (без изменений)
+    // Р’СЃРїРѕРјРѕРіР°С‚РµР»СЊРЅС‹Рµ РјРµС‚РѕРґС‹ (Р±РµР· РёР·РјРµРЅРµРЅРёР№)
     std::string get_mime_type(const std::string& extension) const;
     std::string normalize_route(const fs::path& file_path) const;
     std::optional<CachedFile> load_file_from_disk(const fs::path& file_path) const;
@@ -39,21 +39,21 @@ private:
     void scan_directory(const fs::path& directory);
 
 public:
-    // FIXED: Вернул оригинальный конструктор с args (rebuild_file_map() внутри)
+    // FIXED: Р’РµСЂРЅСѓР» РѕСЂРёРіРёРЅР°Р»СЊРЅС‹Р№ РєРѕРЅСЃС‚СЂСѓРєС‚РѕСЂ СЃ args (rebuild_file_map() РІРЅСѓС‚СЂРё)
     FileCache(const std::string& base_dir, bool enable_cache = true, size_t max_cache = 100);
     ~FileCache() = default;
 
-    // Запрещаем копирование/перемещение
+    // Р—Р°РїСЂРµС‰Р°РµРј РєРѕРїРёСЂРѕРІР°РЅРёРµ/РїРµСЂРµРјРµС‰РµРЅРёРµ
     FileCache(const FileCache&) = delete;
     FileCache& operator=(const FileCache&) = delete;
     FileCache(FileCache&&) = delete;
     FileCache& operator=(FileCache&&) = delete;
 
-    // UPDATED: Модульные методы (onInitialize логирует, без дублирования)
+    // UPDATED: РњРѕРґСѓР»СЊРЅС‹Рµ РјРµС‚РѕРґС‹ (onInitialize Р»РѕРіРёСЂСѓРµС‚, Р±РµР· РґСѓР±Р»РёСЂРѕРІР°РЅРёСЏ)
     bool onInitialize() override;
     void onShutdown() override;
 
-    // Основной API (без изменений)
+    // РћСЃРЅРѕРІРЅРѕР№ API (Р±РµР· РёР·РјРµРЅРµРЅРёР№)
     void rebuild_file_map();
     std::optional<CachedFile> get_file(const std::string& route);
     std::optional<CachedFile> get_file_by_path(const std::string& file_path);
@@ -61,14 +61,14 @@ public:
     bool evict_from_cache(const std::string& route);
     void clear_cache();
 
-    // Информационные методы (без изменений)
+    // РРЅС„РѕСЂРјР°С†РёРѕРЅРЅС‹Рµ РјРµС‚РѕРґС‹ (Р±РµР· РёР·РјРµРЅРµРЅРёР№)
     std::vector<std::string> get_all_routes() const;
     std::vector<std::string> find_routes(const std::string& pattern) const;
     bool route_exists(const std::string& route) const;
     std::optional<std::string> get_mime_type_for_route(const std::string& route) const;
     bool refresh_file(const std::string& route);
 
-    // Структуры для статистики (без изменений)
+    // РЎС‚СЂСѓРєС‚СѓСЂС‹ РґР»СЏ СЃС‚Р°С‚РёСЃС‚РёРєРё (Р±РµР· РёР·РјРµРЅРµРЅРёР№)
     struct CacheInfo {
         size_t cached_files_count;
         size_t total_routes_count;
@@ -88,11 +88,11 @@ public:
         size_t average_file_size;
     };
 
-    // Статистика (без изменений)
+    // РЎС‚Р°С‚РёСЃС‚РёРєР° (Р±РµР· РёР·РјРµРЅРµРЅРёР№)
     CacheInfo get_cache_info() const;
     CacheStats get_detailed_stats() const;
 
-    // Геттеры/сеттеры (без изменений)
+    // Р“РµС‚С‚РµСЂС‹/СЃРµС‚С‚РµСЂС‹ (Р±РµР· РёР·РјРµРЅРµРЅРёР№)
     std::string get_base_directory() const { return base_directory_.string(); }
     bool is_cache_enabled() const { return cache_enabled_; }
     void set_cache_enabled(bool enabled) { cache_enabled_ = enabled; }
