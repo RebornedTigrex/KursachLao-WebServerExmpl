@@ -4,7 +4,7 @@
 #include <string>
 
 class BaseModule : public IModule {
-    const enum class ModuleStatus : uint8_t { SUCCESS, DISABLED, MODULE_ERROR };
+    enum class ModuleStatus : uint8_t { SUCCESS, DISABLED, MODULE_ERROR };
 
 protected:
     std::string name_;

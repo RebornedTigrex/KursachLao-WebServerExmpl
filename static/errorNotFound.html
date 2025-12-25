@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HR Harmony Hub | Page Not Found</title>
     <link rel="stylesheet" href="style">
-    <script src="thirdParty/3.4.17"></script>
-    <script src="thirdParty/feather.min"></script>
+    <script src="/thirdParty/3.4.17"></script>
+    <script src="/thirdParty/feather.min"></script>
     <style>
         .error-404 {
             animation: fadeIn 0.8s ease-out;
@@ -223,83 +223,6 @@
     
     <script>
         feather.replace();
-        
-        document.addEventListener('DOMContentLoaded', () => {
-            // Генерация случайного IP для демонстрации
-            function generateRandomIP() {
-                const octets = [];
-                for (let i = 0; i < 4; i++) {
-                    octets.push(Math.floor(Math.random() * 255));
-                }
-                return octets.join('.');
-            }
-            
-            // Имитация геолокации
-            const locations = [
-                "• Москва, RU •",
-                "• Санкт-Петербург, RU •", 
-                "• Екатеринбург, RU •",
-                "• Новосибирск, RU •",
-                "• Казань, RU •"
-            ];
-            
-            // Обновление IP и геолокации
-            function updateIPDisplay() {
-                const ipElement = document.getElementById('fake-ip');
-                const locationElement = document.getElementById('location-info');
-                
-                const ip = generateRandomIP();
-                const location = locations[Math.floor(Math.random() * locations.length)];
-                const browserInfo = navigator.userAgent.split(' ')[0];
-                
-                ipElement.textContent = `${ip}`;
-                locationElement.textContent = `${location} Браузер: ${browserInfo}`;
-            }
-            
-            // Первоначальное обновление
-            updateIPDisplay();
-            
-            // Обновление каждые 5 секунд
-            setInterval(updateIPDisplay, 5000);
-            
-            // Анимация эмодзи
-            const emojiElement = document.getElementById('emoji');
-            const emojis = ['😊', '😉', '😄', '😎', '🤗'];
-            let emojiIndex = 0;
-            
-            emojiElement.addEventListener('mouseenter', () => {
-                emojiIndex = (emojiIndex + 1) % emojis.length;
-                emojiElement.textContent = emojis[emojiIndex];
-                emojiElement.style.transform = 'scale(1.5)';
-                setTimeout(() => {
-                    emojiElement.style.transform = 'scale(1)';
-                }, 200);
-            });
-            
-            emojiElement.addEventListener('click', () => {
-                const randomEmoji = emojis[Math.floor(Math.random() * emojis.length)];
-                emojiElement.textContent = randomEmoji;
-                
-                // Создаем всплывающий эмодзи
-                const floatingEmoji = document.createElement('div');
-                floatingEmoji.textContent = randomEmoji;
-                floatingEmoji.className = 'fixed text-3xl pointer-events-none animate-bounce';
-                floatingEmoji.style.left = `${Math.random() * window.innerWidth}px`;
-                floatingEmoji.style.top = '100%';
-                document.body.appendChild(floatingEmoji);
-                
-                // Анимация всплытия
-                setTimeout(() => {
-                    floatingEmoji.style.transition = 'all 1s ease-out';
-                    floatingEmoji.style.top = '-100px';
-                    floatingEmoji.style.opacity = '0';
-                    
-                    setTimeout(() => {
-                        document.body.removeChild(floatingEmoji);
-                    }, 1000);
-                }, 10);
-            });
-            
             // Анимация фона для эффекта
             const backgroundAnimation = document.createElement('div');
             backgroundAnimation.className = 'fixed inset-0 -z-10 overflow-hidden pointer-events-none';
@@ -328,7 +251,7 @@
                 }
             `;
             document.head.appendChild(style);
-        });
+        
     </script>
 </body>
 </html>

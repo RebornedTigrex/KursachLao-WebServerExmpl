@@ -45,7 +45,6 @@ public:
     void handleRequest(http::request<Body, http::basic_fields<Allocator>>&& req, Send&& send) {
         http::response<http::string_body> res{ http::status::not_found, req.version() };
         res.set(http::field::server, "ModularServer");
-        // FIXED: Uncomment и используй req.keep_alive() — mirror client
         res.keep_alive(req.keep_alive());
         // Explicit Connection header для force keep-alive (если !reиq.keep_alive(), но для MVP — всегда true для 1.1)
         if (req.version() >= 11 && res.keep_alive()) {
@@ -56,7 +55,7 @@ public:
         auto [path, query] = parseTarget(target);
 
         // Проверяем wildcard /* для динамического поиска в кэше (только по path!)
-        auto wildcard_it = routeHandlers_.find("/*"); //FIXME: Повышает время отклика на (n)
+        auto wildcard_it = routeHandlers_.find("/*"); //FIXME: Повышает время отклика
         if (wildcard_it != routeHandlers_.end() && file_cache_) {
             file_cache_->refresh_file(path);
             auto cached_file = file_cache_->get_file(path);  // Ищем по чистому path
@@ -76,14 +75,10 @@ public:
         if (it != routeHandlers_.end()) {
             // Передаём query в handler (если lambda ожидает — расширь signature)
             // Для MVP: если handler статический, игнорируем query
-            // Пример: it->second(req, res, query);  // Если изменишь lambda на void(const sRequest&, sResponce&, const std::string& query)
             it->second(req, res); 
-        }
-        else if (target.find("api/") != std::string::npos) {
-            res.set(http::field::content_type, "application/json");
-            res.result(http::status::not_found);
-            res.set(http::field::cache_control, "no-cache, must-revalidate");
-            res.body() = R"({"status": "not_found"})";
+            res.prepare_payload();
+            send(std::move(res));
+            return;
         }
         else if (target.find("../") != std::string::npos) {
             res.set(http::field::content_type, "text/html");
@@ -91,8 +86,12 @@ public:
             const auto& cached = file_cache_->get_file("/attention");
             res.set(http::field::cache_control, "public, max-age=300");
             res.body() = cached.value().content;
+            res.prepare_payload();
+            send(std::move(res));
+            return;
+
         }
-        else if (it == routeHandlers_.end() && !dynamicRouteHandlers_.empty()) {
+        if (it == routeHandlers_.end() && !dynamicRouteHandlers_.empty()) { //FIXME: Съедает 404 страничку (Уже нет, но переработать стоит). Сделать нормальную валидацию
             bool handled = false;
             for (const auto& [re, handler] : dynamicRouteHandlers_) {
                 if (std::regex_match(path, re)) {  // Матчим весь path с regex
@@ -106,16 +105,25 @@ public:
                 send(std::move(res));
                 return;
             }
+            else if (target.find("api/") != std::string::npos) {
+                res.set(http::field::content_type, "application/json");
+                res.result(http::status::not_found);
+                res.set(http::field::cache_control, "no-cache, must-revalidate");
+                res.body() = R"({"status": "not_found"})";
+                res.prepare_payload();
+                send(std::move(res));
+                return;
+            }
+            else {
+                res.set(http::field::content_type, "text/html");
+                file_cache_->refresh_file("/errorNotFound");
+                const auto& cached = file_cache_->get_file("/errorNotFound");
+                res.set(http::field::cache_control, "public, max-age=300");
+                res.body() = cached.value().content;
+                res.prepare_payload();
+                send(std::move(res));
+            }
         }
-        else {
-            res.set(http::field::content_type, "text/html");
-            file_cache_->refresh_file("/errorNotFound");
-            const auto& cached = file_cache_->get_file("/errorNotFound");
-            res.set(http::field::cache_control, "public, max-age=300");
-            res.body() = cached.value().content;
-        }
-        res.prepare_payload();
-        send(std::move(res));
     }
 
 protected:

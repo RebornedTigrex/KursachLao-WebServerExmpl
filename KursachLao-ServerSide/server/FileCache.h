@@ -9,6 +9,7 @@
 #include <optional>
 #include <vector>
 #include <functional>
+#include <mutex>
 
 namespace fs = std::filesystem;
 

@@ -145,10 +145,12 @@ int main(int argc, char* argv[]) {
         std::cerr << desc << "\n";
         return EXIT_FAILURE;
     }
+#ifdef _WIN32
     std::cout << "Console CP: " << GetConsoleCP() << std::endl;
     std::cout << "Console Output CP: " << GetConsoleOutputCP() << std::endl;
     std::cout << "ACP: " << GetACP() << std::endl;
     std::cout << "OEMCP: " << GetOEMCP() << std::endl;
+#endif //_WIN32
 
     // Вывод конфигурации
     std::cout << "Server configuration:\n"
