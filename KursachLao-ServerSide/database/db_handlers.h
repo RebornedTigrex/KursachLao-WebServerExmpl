@@ -1,4 +1,4 @@
-#pragma once
+п»ї#pragma once
 
 #include "DatabaseMapper.h"
 #include "Models.h"
@@ -22,7 +22,7 @@ public:
             "SELECT id, fullname, status, salary, penalties, bonuses, total_penalties, total_bonuses, last_updated "
             "FROM employees" + since_filter + " ORDER BY id");
 
-        // Hours (upsert логика на фронте, но храним одну запись на сотрудника)
+        // Hours (upsert Р»РѕРіРёРєР° РЅР° С„СЂРѕРЅС‚Рµ, РЅРѕ С…СЂР°РЅРёРј РѕРґРЅСѓ Р·Р°РїРёСЃСЊ РЅР° СЃРѕС‚СЂСѓРґРЅРёРєР°)
         auto hours = mapper_.query<Hours>(
             "SELECT employee_id, regular_hours, overtime, undertime, last_updated "
             "FROM hours" + since_filter + " ORDER BY employee_id");
@@ -36,7 +36,7 @@ public:
             "SELECT id, employee_id, note, amount, date "
             "FROM bonuses" + since_filter + " ORDER BY date DESC");
 
-        // Dashboard aggregates (только для hired)
+        // Dashboard aggregates (С‚РѕР»СЊРєРѕ РґР»СЏ hired)
         Dashboard dash{};
         auto res = mapper_.db_.query(
             R"(SELECT 
@@ -52,7 +52,7 @@ public:
             dash.undertime = res.get<double>(0, "undertime");
         }
 
-        // Последнее обновление
+        // РџРѕСЃР»РµРґРЅРµРµ РѕР±РЅРѕРІР»РµРЅРёРµ
         std::string current_ts = getCurrentTimestamp();
 
         boost::json::object response;
@@ -90,7 +90,7 @@ public:
 
     // POST /api/employees/:employeeId/penalties
     Penalty createPenalty(int employee_id, const Penalty& input) {
-        // Транзакция: штраф + обновление счётчиков сотрудника
+        // РўСЂР°РЅР·Р°РєС†РёСЏ: С€С‚СЂР°С„ + РѕР±РЅРѕРІР»РµРЅРёРµ СЃС‡С‘С‚С‡РёРєРѕРІ СЃРѕС‚СЂСѓРґРЅРёРєР°
         mapper_.execute("BEGIN");
 
         auto penalty = mapper_.insert<Penalty>(

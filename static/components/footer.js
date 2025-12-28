@@ -1,4 +1,4 @@
-class CustomFooter extends HTMLElement {
+﻿class CustomFooter extends HTMLElement {
     connectedCallback() {
         this.attachShadow({ mode: 'open' });
         this.shadowRoot.innerHTML = `
@@ -75,17 +75,19 @@ class CustomFooter extends HTMLElement {
                     color: #3b82f6;
                 }
             </style>
-<footer class="py-8 border-t">
+            <footer class="py-8 border-t">
                 <div class="container mx-auto px-4">
                     <div class="flex flex-col md:flex-row justify-between items-center">
                         <div class="mb-4 md:mb-0">
-                            <p class="text-gray-500 text-sm">&copy; ${new Date().getFullYear()} HR Harmony Hub. All rights reserved.</p>
+                            <p class="text-gray-500 text-sm">
+                                &copy; ${new Date().getFullYear()} HR Harmony Hub. Все права защищены.
+                            </p>
                         </div>
                         
                         <div class="flex space-x-6">
-                            <a href="#" class="footer-link text-gray-500 hover:text-blue-500 text-sm">Privacy Policy</a>
-                            <a href="#" class="footer-link text-gray-500 hover:text-blue-500 text-sm">Terms of Service</a>
-                            <a href="#" class="footer-link text-gray-500 hover:text-blue-500 text-sm">Contact Us</a>
+                            <a href="#" class="footer-link text-gray-500 hover:text-blue-500 text-sm">Политика конфиденциальности</a>
+                            <a href="#" class="footer-link text-gray-500 hover:text-blue-500 text-sm">Условия использования</a>
+                            <a href="#" class="footer-link text-gray-500 hover:text-blue-500 text-sm">Контакты</a>
                         </div>
                     </div>
                 </div>

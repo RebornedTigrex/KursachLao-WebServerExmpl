@@ -1,21 +1,21 @@
-<!-- hours.html - Updated to use fetchAllData, add validation, remove multiple requests -->
+﻿<!-- hours.html - Обновлено для использования fetchAllData, добавления валидации, удаления нескольких запросов. Переведено на русский язык. -->
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
     <link rel="icon" href="/favicon" />
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HR Harmony Hub | Work Hours</title>
+    <title>HR Harmony Hub | Отработанные часы</title>
     <link rel="stylesheet" href="style">
     <script src="/thirdParty/3.4.17"></script>
     <script src="/thirdParty/feather.min"></script>
 </head>
 <body class="bg-gray-50">
     <custom-navbar></custom-navbar>
-    
+
     <main class="container mx-auto px-4 py-8">
-<h1 class="text-2xl font-bold text-gray-800 mb-8">Учет отработанного времени</h1>
-        
+        <h1 class="text-2xl font-bold text-gray-800 mb-8">Учёт отработанного времени</h1>
+
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
             <div class="bg-white rounded-xl shadow-md p-6">
                 <div class="flex items-center justify-between mb-4">
@@ -25,16 +25,17 @@
                 <div class="text-3xl font-bold text-blue-600" id="total-hours">0</div>
                 <p class="text-gray-500 mt-2">За месяц</p>
             </div>
-            
+
             <div class="bg-white rounded-xl shadow-md p-6">
                 <div class="flex items-center justify-between mb-4">
-                    <h2 class="text-lg font-semibold text-gray-700">Undertime</h2>
+                    <h2 class="text-lg font-semibold text-gray-700">Недоработка</h2>
                     <i data-feather="alert-triangle" class="text-yellow-500"></i>
                 </div>
                 <div class="text-3xl font-bold text-yellow-600" id="undertime-hours">0</div>
                 <p class="text-gray-500 mt-2">Часов за месяц</p>
             </div>
         </div>
+
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div class="bg-white rounded-xl shadow-md p-6">
                 <div class="overflow-x-auto">
@@ -49,7 +50,7 @@
                             </tr>
                         </thead>
                         <tbody id="hours-table-body" class="bg-white divide-y divide-gray-200">
-                            <!-- Will be populated by JavaScript -->
+                            <!-- Заполняется JavaScript -->
                         </tbody>
                     </table>
                 </div>
@@ -61,7 +62,7 @@
                     <div>
                         <label for="hours-employee" class="block text-sm font-medium text-gray-700">Сотрудник</label>
                         <select id="hours-employee" name="employeeId" required class="w-full px-3 py-2 border border-gray-300 rounded-md">
-                            <!-- Will be populated by JavaScript -->
+                            <!-- Заполняется JavaScript -->
                         </select>
                     </div>
 
@@ -72,12 +73,12 @@
 
                     <div>
                         <label for="overtime" class="block text-sm font-medium text-gray-700">Сверхурочные</label>
-                        <input type="number" id="overtime" name="overtime" min="0" step="0.1" class="w-full px-3 py-2 border border-gray-300 rounded-md" value="0">
+                        <input type="number" id="overtime" name="overtime" min="0" step="0.1" value="0" class="w-full px-3 py-2 border border-gray-300 rounded-md">
                     </div>
 
                     <div>
                         <label for="undertime" class="block text-sm font-medium text-gray-700">Недоработка</label>
-                        <input type="number" id="undertime" name="undertime" min="0" step="0.1" class="w-full px-3 py-2 border border-gray-300 rounded-md" value="0">
+                        <input type="number" id="undertime" name="undertime" min="0" step="0.1" value="0" class="w-full px-3 py-2 border border-gray-300 rounded-md">
                     </div>
 
                     <button type="submit" class="w-full bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600">
@@ -87,12 +88,14 @@
             </div>
         </div>
 
-        <!-- Edit Hours Modal -->
+        <!-- Модальное окно редактирования часов -->
         <div id="edit-hours-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
             <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
                 <div class="flex justify-between items-center mb-4">
                     <h3 class="text-lg font-medium">Редактировать часы</h3>
-                    <button id="close-edit-hours" class="text-gray-500 hover:text-gray-700">✕</button>
+                    <button id="close-edit-hours" class="text-gray-500 hover:text-gray-700">
+                        <i data-feather="x"></i>
+                    </button>
                 </div>
 
                 <form id="edit-hours-form" class="space-y-4">
@@ -103,54 +106,57 @@
                     </div>
                     <div>
                         <label for="edit-overtime" class="block text-sm font-medium text-gray-700">Сверхурочные</label>
-                        <input type="number" id="edit-overtime" name="overtime" min="0" step="0.1" class="w-full px-3 py-2 border border-gray-300 rounded-md" value="0">
+                        <input type="number" id="edit-overtime" name="overtime" min="0" step="0.1" class="w-full px-3 py-2 border border-gray-300 rounded-md">
                     </div>
                     <div>
                         <label for="edit-undertime" class="block text-sm font-medium text-gray-700">Недоработка</label>
-                        <input type="number" id="edit-undertime" name="undertime" min="0" step="0.1" class="w-full px-3 py-2 border border-gray-300 rounded-md" value="0">
+                        <input type="number" id="edit-undertime" name="undertime" min="0" step="0.1" class="w-full px-3 py-2 border border-gray-300 rounded-md">
                     </div>
-
-                    <div class="flex justify-end space-x-2">
-                        <button type="button" id="cancel-edit-hours" class="px-4 py-2 bg-gray-200 rounded-md">Отмена</button>
-                        <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded-md">Сохранить</button>
+                    <div class="flex justify-end space-x-3">
+                        <button type="button" id="cancel-edit-hours" class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">Отмена</button>
+                        <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600">Сохранить</button>
                     </div>
                 </form>
             </div>
         </div>
 
-        <!-- Success Notification -->
-        <div id="hours-success-notification" class="fixed bottom-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg hidden">
-            Часы успешно добавлены!
-        </div>
-</main>
-    
+        <!-- Контейнер для уведомлений -->
+        <div id="notification-container" class="fixed top-4 right-4 z-50"></div>
+    </main>
+
     <custom-footer></custom-footer>
-    <script src="components/navbar"></script>
+
+    <!-- Компоненты -->
+    <script src="components/navbar."></script>
     <script src="components/footer"></script>
+
+    <!-- Модули -->
     <script src="modules/dataCache"></script>
+    <script src="modules/notifications"></script>
+
     <script>
         feather.replace();
+
         document.addEventListener('DOMContentLoaded', () => {
             const tbody = document.getElementById('hours-table-body');
             const employeeSelect = document.getElementById('hours-employee');
             const editModal = document.getElementById('edit-hours-modal');
             const editForm = document.getElementById('edit-hours-form');
-            
             let loadingPromise = null;
 
-            // Load employees and hours
             async function loadHours(force = false) {
                 if (loadingPromise) return loadingPromise;
-                
+
                 loadingPromise = (async () => {
                     try {
                         const { employees, hours } = await window.dataCache.fetchAllData(force);
+
                         tbody.innerHTML = '';
+                        employeeSelect.innerHTML = '';
 
                         const hired = employees.filter(emp => emp.status === 'hired');
 
-                        // Populate employee dropdown
-                        employeeSelect.innerHTML = '';
+                        // Заполняем выпадающий список только нанятыми сотрудниками
                         hired.forEach(emp => {
                             const option = document.createElement('option');
                             option.value = emp.id;
@@ -169,21 +175,20 @@
                             const row = document.createElement('tr');
                             row.className = 'hover:bg-gray-50';
                             row.innerHTML = `
-                                <td class="px-6 py-4 whitespace-nowrap font-medium text-gray-900">${emp.fullname}</td>
-                                <td class="px-6 py-4 whitespace-nowrap">${hoursData.regularHours}h</td>
-                                <td class="px-6 py-4 whitespace-nowrap text-green-600">+${hoursData.overtime}h</td>
-                                <td class="px-6 py-4 whitespace-nowrap text-red-600">-${Number(hoursData.undertime).toFixed(1)}h</td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <button data-employee-id="${emp.id}" class="edit-hours text-blue-500 hover:text-blue-700 mr-2">
-                                        <i data-feather="edit-2" class="w-4 h-4"></i>
-                                    </button>
-                                </td>
-                            `;
+                                    <td class="px-6 py-4 whitespace-nowrap font-medium text-gray-900">${emp.fullname}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">${hoursData.regularHours.toFixed(1)} ч</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-green-600">+${hoursData.overtime.toFixed(1)} ч</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-red-600">-${hoursData.undertime.toFixed(1)} ч</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <button data-employee-id="${emp.id}" class="edit-hours text-blue-500 hover:text-blue-700 mr-2">
+                                            <i data-feather="edit-2" class="w-4 h-4"></i>
+                                        </button>
+                                    </td>
+                                `;
                             tbody.appendChild(row);
                         });
 
-                        // Update summary counters
-                        document.getElementById('total-hours').textContent = totalHours;
+                        document.getElementById('total-hours').textContent = totalHours.toFixed(1);
                         document.getElementById('undertime-hours').textContent = totalUndertime.toFixed(1);
 
                         feather.replace();
@@ -191,14 +196,15 @@
                         loadingPromise = null;
                     }
                 })();
-                
+
                 return loadingPromise;
             }
 
-            // Edit hours modal handling
+            // Открытие модального окна редактирования
             document.addEventListener('click', async (e) => {
                 const btn = e.target.closest('.edit-hours');
                 if (!btn) return;
+
                 const employeeId = parseInt(btn.dataset.employeeId, 10);
                 const hoursData = await window.dataCache.getHoursForEmployee(employeeId);
 
@@ -210,12 +216,15 @@
                 editModal.classList.remove('hidden');
             });
 
+            // Закрытие модального окна
             document.getElementById('close-edit-hours').addEventListener('click', () => editModal.classList.add('hidden'));
             document.getElementById('cancel-edit-hours').addEventListener('click', () => editModal.classList.add('hidden'));
 
+            // Сохранение изменений в часах
             editForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 if (!editForm.checkValidity()) return;
+
                 const employeeId = parseInt(document.getElementById('edit-hours-employee-id').value, 10);
                 const payload = {
                     regularHours: parseFloat(document.getElementById('edit-regular-hours').value) || 0,
@@ -223,19 +232,17 @@
                     undertime: parseFloat(document.getElementById('edit-undertime').value) || 0
                 };
 
-                await window.dataCache.addHours(employeeId, payload);
-                editModal.classList.add('hidden');
-
-                // Show success notification
-                const notification = document.getElementById('hours-success-notification');
-                notification.classList.remove('hidden');
-                setTimeout(() => notification.classList.add('hidden'), 2000);
-
-                // load fresh data
-                await loadHours(true);
+                try {
+                    await window.dataCache.addHours(employeeId, payload);
+                    editModal.classList.add('hidden');
+                    window.notifications.showSuccess('Часы успешно обновлены!');
+                    await loadHours(true);
+                } catch (error) {
+                    window.notifications.showError(error);
+                }
             });
 
-            // Form submission (add new hours entry)
+            // Добавление новых часов
             document.getElementById('add-hours-form').addEventListener('submit', async (e) => {
                 e.preventDefault();
                 if (!e.target.checkValidity()) return;
@@ -247,24 +254,20 @@
                     undertime: parseFloat(document.getElementById('undertime').value) || 0
                 };
 
-                await window.dataCache.addHours(formData.employeeId, formData);
-                
-                // Clear form
-                document.getElementById('add-hours-form').reset();
-
-                // Show success notification
-                const notification = document.getElementById('hours-success-notification');
-                notification.classList.remove('hidden');
-                setTimeout(() => notification.classList.add('hidden'), 3000);
-
-                // load fresh data
-                await loadHours(true);
+                try {
+                    await window.dataCache.addHours(formData.employeeId, formData);
+                    e.target.reset();
+                    window.notifications.showSuccess('Часы успешно добавлены!');
+                    await loadHours(true);
+                } catch (error) {
+                    window.notifications.showError(error);
+                }
             });
 
-            // Listen for external cache updates and refresh
+            // Обновление при изменении кэша
             window.addEventListener('dataCache:updated', () => loadHours(true));
 
-            // Initial load
+            // Первоначальная загрузка
             loadHours();
         });
     </script>

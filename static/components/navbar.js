@@ -1,7 +1,7 @@
-class CustomNavbar extends HTMLElement {
-  connectedCallback() {
-    this.attachShadow({ mode: 'open' });
-    this.shadowRoot.innerHTML = `
+﻿class CustomNavbar extends HTMLElement {
+    connectedCallback() {
+        this.attachShadow({ mode: 'open' });
+        this.shadowRoot.innerHTML = `
       <style>
         :host {
           display: block;
@@ -14,7 +14,7 @@ class CustomNavbar extends HTMLElement {
           padding-left: 1rem;
           padding-right: 1rem;
         }
-.navbar-container {
+        .navbar-container {
           max-width: 1280px;
           margin: 0 auto;
           padding: 0.75rem 1.5rem;
@@ -85,27 +85,27 @@ class CustomNavbar extends HTMLElement {
         </a>
         <div class="nav-buttons">
           <a href="/" class="nav-button">
-            <span>Dashboard</span>
+            <span>Панель управления</span>
           </a>
           <a href="employees" class="nav-button">
-            <span>Employees</span>
+            <span>Сотрудники</span>
           </a>
           <a href="salary" class="nav-button">
-            <span>Salary</span>
+            <span>Зарплата</span>
           </a>
           <a href="hours" class="nav-button">
-            <span>Hours</span>
+            <span>Часы</span>
           </a>
         </div>
-</div>
-`;
-  }
+      </div>
+    `;
+    }
 }
 customElements.define('custom-navbar', CustomNavbar);
 
-// Replace feather icons after navbar is rendered
+// Заменяем feather-иконки после рендеринга navbar
 document.addEventListener('DOMContentLoaded', () => {
-  if (window.feather) {
-    feather.replace();
-  }
+    if (window.feather) {
+        feather.replace();
+    }
 });
