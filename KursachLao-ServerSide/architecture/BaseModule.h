@@ -1,10 +1,10 @@
-#pragma once
+п»ї#pragma once
 #include "IModule.h"
 #include <atomic>
 #include <string>
 
 class BaseModule : public IModule {
-    const enum class ModuleStatus : uint8_t { SUCCESS, DISABLED, MODULE_ERROR };
+    enum class ModuleStatus : uint8_t { SUCCESS, DISABLED, MODULE_ERROR };
 
 protected:
     std::string name_;
@@ -51,11 +51,11 @@ public:
     friend class ModuleRegistry;
 
 protected:
-    // Для реализации в наследниках
+    // Р”Р»СЏ СЂРµР°Р»РёР·Р°С†РёРё РІ РЅР°СЃР»РµРґРЅРёРєР°С…
     virtual bool onInitialize() = 0;
     virtual void onShutdown() = 0;
 
-    // Вспомогательные методы
+    // Р’СЃРїРѕРјРѕРіР°С‚РµР»СЊРЅС‹Рµ РјРµС‚РѕРґС‹
     bool isInitialized() const { return initialized_.load(); }
 
     void setId(int id) { id_ = id; }

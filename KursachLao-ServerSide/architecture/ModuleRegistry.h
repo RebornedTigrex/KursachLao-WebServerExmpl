@@ -1,4 +1,4 @@
-#pragma once
+п»ї#pragma once
 
 #include "BaseModule.h"
 #include "IModule.h"
@@ -13,7 +13,7 @@
 
 /*
 # ModuleManager
-    Управляет жизненным циклом модулей, сохраняет их атрибуты и позволяет иметь модульную структуру.
+    РЈРїСЂР°РІР»СЏРµС‚ Р¶РёР·РЅРµРЅРЅС‹Рј С†РёРєР»РѕРј РјРѕРґСѓР»РµР№, СЃРѕС…СЂР°РЅСЏРµС‚ РёС… Р°С‚СЂРёР±СѓС‚С‹ Рё РїРѕР·РІРѕР»СЏРµС‚ РёРјРµС‚СЊ РјРѕРґСѓР»СЊРЅСѓСЋ СЃС‚СЂСѓРєС‚СѓСЂСѓ.
 
 */
 
@@ -40,10 +40,10 @@ public:
         auto module = std::make_unique<T>(std::forward<Args>(args)...);
         int id = generateId();
 
-        // Устанавливаем id в модуль
+        // РЈСЃС‚Р°РЅР°РІР»РёРІР°РµРј id РІ РјРѕРґСѓР»СЊ
         setModuleId(module.get(), id);
 
-        // Проверяем, не существует ли уже модуль с таким id
+        // РџСЂРѕРІРµСЂСЏРµРј, РЅРµ СЃСѓС‰РµСЃС‚РІСѓРµС‚ Р»Рё СѓР¶Рµ РјРѕРґСѓР»СЊ СЃ С‚Р°РєРёРј id
         if (modules_.find(id) != modules_.end()) {
             throw std::runtime_error("Internal error: generated duplicate id " + std::to_string(id));
         }
